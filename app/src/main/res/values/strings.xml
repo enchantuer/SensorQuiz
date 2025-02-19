@@ -2,4 +2,8 @@
     <string name="app_name">SensorQuiz</string>
     <string name="back_button">Back</string>
     <string name="setting_button">Open Settings</string>
+    <string name="solo">Solo</string>
+    <string name="multiplayer">Multijoueur</string>
+    <string name="setting">Paramètres</string>
+    <string name="resume">Reprendre</string>
 </resources>
