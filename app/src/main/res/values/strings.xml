@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SensorQuiz</string>
+    <string name="back_button">Back</string>
+    <string name="setting_button">Open Settings</string>
 </resources>
