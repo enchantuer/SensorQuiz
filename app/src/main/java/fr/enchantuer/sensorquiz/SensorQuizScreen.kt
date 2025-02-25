@@ -7,6 +7,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,13 +21,20 @@ fun SensorQuizTopAppBar(
     canAccessSettings: Boolean,
     navigateUp: () -> Unit,
     openSetting: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    questionCount: Pair<Int, Int>? = null
 ) {
     CenterAlignedTopAppBar(
         title = {
-            Text(
-                text = stringResource(R.string.app_name),
-            )
+            if (questionCount == null) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                )
+            } else {
+                LinearProgressIndicator(
+                    progress = { questionCount.first.toFloat() / questionCount.second }
+                )
+            }
         },
         navigationIcon = {
             if (canNavigateBack) {
@@ -62,4 +70,10 @@ fun TopAppBarPreview() {
 @Composable
 fun TopAppBarEmptyPreview() {
     SensorQuizTopAppBar(canNavigateBack = false, canAccessSettings = false, navigateUp = {}, openSetting = {})
+}
+
+@Preview
+@Composable
+fun TopAppBarQuestionCountPreview() {
+    SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {}, questionCount = Pair(2, 10))
 }
