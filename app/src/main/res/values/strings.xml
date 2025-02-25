@@ -15,4 +15,7 @@
     <string name="pseudo">Pseudo</string>
     <string name="player_icon">Icon de Joueur</string>
     <string name="edit_button">Editer</string>
+    <string name="with">Avec</string>
+    <string name="without">Sans</string>
+    <string name="use_localisation">Question utilisant la localisation ?</string>
 </resources>
