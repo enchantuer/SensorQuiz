@@ -15,4 +15,7 @@
     <string name="pseudo">Pseudo</string>
     <string name="player_icon">Icon de Joueur</string>
     <string name="edit_button">Editer</string>
+    <string name="statistics">Statistiques</string>
+    <string name="correct_answers">Réponses Correctes</string>
+    <string name="wrong_answers">Réponses Incorrectes</string>
 </resources>
