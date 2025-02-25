@@ -7,4 +7,12 @@
     <string name="setting">Paramètres</string>
     <string name="resume">Reprendre</string>
     <string name="other">Autre</string>
+    <string name="vibrate">Vibrations</string>
+    <string name="hidden_other_choice">Réponse Autre Cachée</string>
+    <string name="lean_to_answear">Pencher Pour Répondre</string>
+    <string name="shake_for_other_choice">Secouer Pour Réponse Autre</string>
+    <string name="sensor_question">Question Capteur</string>
+    <string name="pseudo">Pseudo</string>
+    <string name="player_icon">Icon de Joueur</string>
+    <string name="edit_button">Editer</string>
 </resources>
