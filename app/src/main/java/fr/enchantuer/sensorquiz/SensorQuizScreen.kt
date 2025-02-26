@@ -1,7 +1,11 @@
 package fr.enchantuer.sensorquiz
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -15,7 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -26,6 +34,7 @@ import androidx.navigation.compose.rememberNavController
 import fr.enchantuer.sensorquiz.ui.LocalisationScreen
 import fr.enchantuer.sensorquiz.ui.MenuScreen
 import fr.enchantuer.sensorquiz.ui.QuestionScreen
+import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
 import fr.enchantuer.sensorquiz.ui.ThemeScreen
 
@@ -47,9 +56,29 @@ fun SensorQuizTopAppBar(
                     text = stringResource(currentScreen.title),
                 )
             } else {
-                LinearProgressIndicator(
-                    progress = { questionCount.first.toFloat() / questionCount.second }
-                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .height(IntrinsicSize.Min)
+                ) {
+                    LinearProgressIndicator(
+                        progress = { questionCount.first.toFloat() / questionCount.second },
+                        modifier = Modifier
+                            .fillMaxHeight(),
+                        trackColor = MaterialTheme.colorScheme.inversePrimary
+                    )
+                    Text(
+                        text = "${questionCount.first} / ${questionCount.second}",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            shadow = Shadow(
+                                color = Color.Black,
+                                offset = Offset(2f, 2f),
+                                blurRadius = 8f
+                            )
+                        )
+                    )
+                }
             }
         },
         navigationIcon = {
