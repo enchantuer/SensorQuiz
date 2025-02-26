@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,6 +50,7 @@ fun ResultsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
+        Score(score = 124, modifier = Modifier.fillMaxWidth())
         Statistics()
         Objectives()
         Row(
@@ -65,6 +67,38 @@ fun ResultsScreen(
                 modifier = Modifier.weight(1f),
                 text = R.string.home,
                 onClick = onHomeClick
+            )
+        }
+    }
+}
+
+@Composable
+fun Score(
+    score: Int,
+    modifier: Modifier = Modifier
+) {
+    Card {
+        Column(
+            modifier = modifier
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Score",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(4.dp)
+            )
+            Text(
+                text = score.toString(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.displayLarge,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(4.dp)
             )
         }
     }
