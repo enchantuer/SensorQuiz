@@ -124,7 +124,7 @@ fun SensorQuizApp(
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
                 canAccessSettings = false,
-                openSetting = {}
+                openSetting = { navController.navigate(SensorQuizScreen.Settings.name) }
             )
         }
     ) { innerPadding ->
