@@ -85,7 +85,7 @@ fun Score(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Score",
+                text = stringResource(R.string.score).uppercase(),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier

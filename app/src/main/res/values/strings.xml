@@ -29,4 +29,5 @@
     <string name="replay">Rejouer</string>
     <string name="home">Menu</string>
     <string name="start">Jouer</string>
+    <string name="score">Score</string>
 </resources>
