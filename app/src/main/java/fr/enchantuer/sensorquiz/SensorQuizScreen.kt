@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import fr.enchantuer.sensorquiz.ui.LobbyScreen
 import fr.enchantuer.sensorquiz.ui.LocalisationScreen
 import fr.enchantuer.sensorquiz.ui.MenuScreen
+import fr.enchantuer.sensorquiz.ui.MultiplayerMenuScreen
 import fr.enchantuer.sensorquiz.ui.QuestionScreen
 import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
@@ -209,6 +210,18 @@ fun SensorQuizApp(
                 )
             }
 
+            composable(route = SensorQuizScreen.MultiplayerMenu.name) {
+                MultiplayerMenuScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onHostClick = {
+                        navController.navigate(SensorQuizScreen.Lobby.name)
+                    },
+                    onJoinClick = {
+                        navController.navigate(SensorQuizScreen.Lobby.name)
+                    }
+                )
+            }
+
             composable(route = SensorQuizScreen.Lobby.name) {
                 LobbyScreen(
                     modifier = Modifier.fillMaxSize(),
@@ -224,7 +237,6 @@ fun SensorQuizApp(
                     }
                 )
             }
-
         }
     }
 }
@@ -236,6 +248,7 @@ enum class SensorQuizScreen(@StringRes val title: Int) {
     Localisation(R.string.choose_localisation),
     Question(R.string.Question),
     Results(R.string.resultat),
+    MultiplayerMenu(R.string.multiplayer_menu),
     Lobby(R.string.lobby),
 }
 

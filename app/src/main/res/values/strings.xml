@@ -30,4 +30,8 @@
     <string name="home">Menu</string>
     <string name="start">Jouer</string>
     <string name="score">Score</string>
+    <string name="host">Créer</string>
+    <string name="input_code">CODE</string>
+    <string name="join">Rejoindre</string>
+    <string name="multiplayer_menu">Multijoueur</string>
 </resources>
