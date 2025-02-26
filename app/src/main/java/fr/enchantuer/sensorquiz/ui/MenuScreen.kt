@@ -23,7 +23,7 @@ fun MenuScreen(
         list = listOfNotNull(
             if (canResume) Pair(stringResource(R.string.resume)) {} else null,
             Pair(stringResource(R.string.solo)) { onNextButtonClick(SensorQuizScreen.Theme.name) },
-            Pair(stringResource(R.string.multiplayer)) { onNextButtonClick(SensorQuizScreen.Lobby.name) },
+            Pair(stringResource(R.string.multiplayer)) { onNextButtonClick(SensorQuizScreen.MultiplayerMenu.name) },
             Pair(stringResource(R.string.setting)) { onNextButtonClick(SensorQuizScreen.Settings.name) },
         )
     )
