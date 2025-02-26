@@ -152,7 +152,7 @@ fun CodeCard(
     ) {
        Text(
            text = code.uppercase(),
-           style = MaterialTheme.typography.displayMedium,
+           style = MaterialTheme.typography.headlineMedium,
            modifier = Modifier
                .padding(16.dp)
        )
