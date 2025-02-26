@@ -159,7 +159,13 @@ fun SensorQuizApp(
                 LocalisationScreen(
                     modifier = Modifier.fillMaxSize(),
                     onNextButtonClick = {
-                        navController.navigate(SensorQuizScreen.Question.name)
+                        navController.navigate(SensorQuizScreen.Question.name) {
+                            popUpTo(SensorQuizScreen.Menu.name) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
@@ -168,7 +174,13 @@ fun SensorQuizApp(
                 QuestionScreen(
                     modifier = Modifier.fillMaxSize(),
                     onNextButtonClick = {
-                        navController.navigate(SensorQuizScreen.Results.name)
+                        navController.navigate(SensorQuizScreen.Results.name) {
+                            popUpTo(SensorQuizScreen.Menu.name) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }
