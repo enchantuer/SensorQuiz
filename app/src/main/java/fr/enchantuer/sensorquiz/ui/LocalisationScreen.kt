@@ -17,10 +17,12 @@ import fr.enchantuer.sensorquiz.R
 
 @Composable
 fun LocalisationScreen(
+    onNextButtonClick: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.padding(8.dp),
+        modifier = modifier
+            .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -31,8 +33,8 @@ fun LocalisationScreen(
             modifier = Modifier,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LocalisationButton(text = R.string.with, useLocalisation = true)
-            LocalisationButton(text = R.string.without, useLocalisation = false)
+            LocalisationButton(text = R.string.with, onClick = { onNextButtonClick(true) })
+            LocalisationButton(text = R.string.without, onClick = { onNextButtonClick(false) })
         }
     }
 }
@@ -40,11 +42,11 @@ fun LocalisationScreen(
 @Composable
 fun LocalisationButton(
     @StringRes text: Int,
-    useLocalisation: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Button(
-        onClick = {},
+        onClick = onClick,
         modifier = modifier
     ) {
         Text(text = stringResource(text))
@@ -54,5 +56,5 @@ fun LocalisationButton(
 @Preview(showBackground = true)
 @Composable
 fun LocalisationScreenPreview() {
-    LocalisationScreen()
+    LocalisationScreen(onNextButtonClick = {})
 }

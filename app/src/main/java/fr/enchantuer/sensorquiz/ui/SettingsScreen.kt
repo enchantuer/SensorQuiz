@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,8 +65,7 @@ fun SettingsScreen(
 
     LazyColumn(
         modifier = modifier
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .fillMaxSize(),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -135,13 +133,15 @@ fun SettingCard(
 @Composable
 fun SettingItem(
     @StringRes text: Int,
-    initialChecked: Boolean
+    initialChecked: Boolean,
+    modifier: Modifier = Modifier
 ) {
     var checked by rememberSaveable { mutableStateOf(initialChecked) }
 
     SettingCard(
         clickable = true,
-        onClick = { checked = !checked }
+        onClick = { checked = !checked },
+        modifier = modifier
     ) {
         Row(
             modifier = Modifier
@@ -164,12 +164,15 @@ fun SettingItem(
 }
 
 @Composable
-fun SoundSettingItem() {
+fun SoundSettingItem(
+    modifier: Modifier = Modifier
+) {
     var volume by rememberSaveable { mutableFloatStateOf(0.5f) }
 
     SettingCard(
         clickable = false,
-        onClick = {}
+        onClick = {},
+        modifier = modifier
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -192,13 +195,16 @@ fun SoundSettingItem() {
 }
 
 @Composable
-fun PseudoSettingItem() {
+fun PseudoSettingItem(
+    modifier: Modifier = Modifier
+) {
     var pseudo by rememberSaveable { mutableStateOf("Joueur 1") }
     val focusRequester = remember { FocusRequester() }
 
     SettingCard(
         clickable = true,
         onClick = { focusRequester.requestFocus() },
+        modifier = modifier
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
