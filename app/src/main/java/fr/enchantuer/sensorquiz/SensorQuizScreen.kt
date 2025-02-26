@@ -1,5 +1,8 @@
 package fr.enchantuer.sensorquiz
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
@@ -8,15 +11,28 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import fr.enchantuer.sensorquiz.ui.LocalisationScreen
+import fr.enchantuer.sensorquiz.ui.MenuScreen
+import fr.enchantuer.sensorquiz.ui.QuestionScreen
+import fr.enchantuer.sensorquiz.ui.SettingsScreen
+import fr.enchantuer.sensorquiz.ui.ThemeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SensorQuizTopAppBar(
+    currentScreen: SensorQuizScreen,
     canNavigateBack: Boolean,
     canAccessSettings: Boolean,
     navigateUp: () -> Unit,
@@ -28,7 +44,7 @@ fun SensorQuizTopAppBar(
         title = {
             if (questionCount == null) {
                 Text(
-                    text = stringResource(R.string.app_name),
+                    text = stringResource(currentScreen.title),
                 )
             } else {
                 LinearProgressIndicator(
@@ -60,20 +76,108 @@ fun SensorQuizTopAppBar(
     )
 }
 
+@Composable
+fun SensorQuizApp(
+    navController: NavHostController = rememberNavController(),
+) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentScreen = SensorQuizScreen.valueOf(
+        backStackEntry?.destination?.route ?: SensorQuizScreen.Menu.name
+    )
+
+    Scaffold (
+        topBar ={
+            SensorQuizTopAppBar(
+                currentScreen = currentScreen,
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = { navController.navigateUp() },
+                canAccessSettings = false,
+                openSetting = {}
+            )
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = SensorQuizScreen.Menu.name,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(route = SensorQuizScreen.Menu.name) {
+                MenuScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    canResume = false,
+                    onNextButtonClick = {
+                        navController.navigate(it)
+                    }
+                )
+            }
+
+            composable(route = SensorQuizScreen.Settings.name) {
+                SettingsScreen()
+            }
+
+            composable(route = SensorQuizScreen.Theme.name) {
+                ThemeScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onNextButtonClick = {
+                        navController.navigate(SensorQuizScreen.Localisation.name)
+                    }
+                )
+            }
+
+            composable(route = SensorQuizScreen.Localisation.name) {
+                LocalisationScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onNextButtonClick = {
+                        navController.navigate(SensorQuizScreen.Question.name)
+                    }
+                )
+            }
+
+            composable(route = SensorQuizScreen.Question.name) {
+                QuestionScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onNextButtonClick = {
+                        navController.navigate(SensorQuizScreen.Results.name)
+                    }
+                )
+            }
+
+            composable(route = SensorQuizScreen.Results.name) {
+
+            }
+
+            composable(route = SensorQuizScreen.Lobby.name) {
+
+            }
+
+        }
+    }
+}
+
+enum class SensorQuizScreen(@StringRes val title: Int) {
+    Menu(R.string.app_name),
+    Settings(R.string.setting),
+    Theme(R.string.choose_theme),
+    Localisation(R.string.choose_localisation),
+    Question(R.string.Question),
+    Results(R.string.resultat),
+    Lobby(R.string.lobby),
+}
+
 @Preview
 @Composable
 fun TopAppBarPreview() {
-    SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {})
+    SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {}, currentScreen = SensorQuizScreen.Menu)
 }
 
 @Preview
 @Composable
 fun TopAppBarEmptyPreview() {
-    SensorQuizTopAppBar(canNavigateBack = false, canAccessSettings = false, navigateUp = {}, openSetting = {})
+    SensorQuizTopAppBar(canNavigateBack = false, canAccessSettings = false, navigateUp = {}, openSetting = {}, currentScreen = SensorQuizScreen.Menu)
 }
 
 @Preview
 @Composable
 fun TopAppBarQuestionCountPreview() {
-    SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {}, questionCount = Pair(2, 10))
+    SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {}, questionCount = Pair(2, 10), currentScreen = SensorQuizScreen.Menu)
 }

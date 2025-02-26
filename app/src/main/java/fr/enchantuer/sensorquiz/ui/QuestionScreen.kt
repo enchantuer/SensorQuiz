@@ -24,9 +24,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.enchantuer.sensorquiz.R
+import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 
 @Composable
 fun QuestionScreen(
+    onNextButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Centrer le contenu verticalement et horizontalement
@@ -43,6 +45,7 @@ fun QuestionScreen(
             )
             Choices(
                 choices = Pair("Nantes", "Paris"),
+                onClick = { onNextButtonClick() },
                 canOther = true
             )
         }
@@ -75,11 +78,13 @@ fun Question(
 @Composable
 fun Choices(
     choices: Pair<String, String>,
+    onClick: () -> Unit,
     canOther: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(horizontal = 16.dp)
+        modifier = modifier
+            .padding(horizontal = 16.dp)
             .height(IntrinsicSize.Min),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -91,6 +96,7 @@ fun Choices(
         ) {
             ChoiceButton(
                 choices.first,
+                onClick = onClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight() // Prend la hauteur du plus grand bouton
@@ -98,6 +104,7 @@ fun Choices(
             Spacer(modifier = Modifier.width(16.dp))
             ChoiceButton(
                 choices.second,
+                onClick = onClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
@@ -108,6 +115,7 @@ fun Choices(
             Spacer(modifier = Modifier.height(16.dp))
             ChoiceButton(
                 stringResource(R.string.other),
+                onClick = onClick,
                 modifier = Modifier
                     .fillMaxWidth(0.5f) // Même largeur approximatif que A et B
                     .weight(1f) // Prend la même hauteur que A et B
@@ -119,11 +127,12 @@ fun Choices(
 @Composable
 fun ChoiceButton(
     text: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Button(
         modifier = modifier,
-        onClick = {}
+        onClick = onClick
     ) {
         Text(text = text)
     }
@@ -132,5 +141,7 @@ fun ChoiceButton(
 @Preview(showBackground = true)
 @Composable
 fun QuestionScreenPreview() {
-    QuestionScreen()
+    SensorQuizTheme {
+        QuestionScreen(onNextButtonClick = {})
+    }
 }

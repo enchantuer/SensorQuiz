@@ -15,6 +15,14 @@
     <string name="pseudo">Pseudo</string>
     <string name="player_icon">Icon de Joueur</string>
     <string name="edit_button">Editer</string>
+    <string name="with">Avec</string>
+    <string name="without">Sans</string>
+    <string name="use_localisation">Question utilisant la localisation ?</string>
+    <string name="choose_theme">Catégorie</string>
+    <string name="choose_localisation">Localisation</string>
+    <string name="Question">Question</string>
+    <string name="resultat">Resultats</string>
+    <string name="lobby">Lobby</string>
     <string name="statistics">Statistiques</string>
     <string name="correct_answers">Réponses Correctes</string>
     <string name="wrong_answers">Réponses Incorrectes</string>
