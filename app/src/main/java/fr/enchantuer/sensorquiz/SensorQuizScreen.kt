@@ -143,7 +143,26 @@ fun SensorQuizApp(
             }
 
             composable(route = SensorQuizScreen.Results.name) {
-
+                ResultsScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onReplayClick = {
+                        navController.navigate(SensorQuizScreen.Question.name) {
+                            popUpTo(SensorQuizScreen.Menu.name) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    onHomeClick = {
+                        navController.navigate(SensorQuizScreen.Menu.name) {
+                            popUpTo(SensorQuizScreen.Menu.name) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             composable(route = SensorQuizScreen.Lobby.name) {

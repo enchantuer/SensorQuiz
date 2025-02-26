@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -37,16 +39,51 @@ import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 
 @Composable
 fun ResultsScreen(
+    onReplayClick: () -> Unit,
+    onHomeClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         Statistics()
         Objectives()
+        Row(
+            modifier = Modifier,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            ResultsButton(
+                modifier = Modifier.weight(1f),
+                text = R.string.replay,
+                onClick = onReplayClick
+            )
+            ResultsButton(
+                modifier = Modifier.weight(1f),
+                text = R.string.home,
+                onClick = onHomeClick
+            )
+        }
+    }
+}
+
+@Composable
+fun ResultsButton(
+    @StringRes text: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(text).uppercase(),
+            style = MaterialTheme.typography.titleMedium
+        )
     }
 }
 
@@ -196,6 +233,6 @@ fun Badge(
 @Composable
 fun ResultsScreenPreview() {
     SensorQuizTheme {
-        ResultsScreen()
+        ResultsScreen(modifier = Modifier.fillMaxSize(), onReplayClick = {}, onHomeClick = {})
     }
 }

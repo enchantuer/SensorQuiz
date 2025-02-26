@@ -26,4 +26,6 @@
     <string name="statistics">Statistiques</string>
     <string name="correct_answers">Réponses Correctes</string>
     <string name="wrong_answers">Réponses Incorrectes</string>
+    <string name="replay">Rejouer</string>
+    <string name="home">Menu</string>
 </resources>
