@@ -28,4 +28,5 @@
     <string name="wrong_answers">Réponses Incorrectes</string>
     <string name="replay">Rejouer</string>
     <string name="home">Menu</string>
+    <string name="start">Jouer</string>
 </resources>

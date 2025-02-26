@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import fr.enchantuer.sensorquiz.ui.LobbyScreen
 import fr.enchantuer.sensorquiz.ui.LocalisationScreen
 import fr.enchantuer.sensorquiz.ui.MenuScreen
 import fr.enchantuer.sensorquiz.ui.QuestionScreen
@@ -209,7 +210,19 @@ fun SensorQuizApp(
             }
 
             composable(route = SensorQuizScreen.Lobby.name) {
-
+                LobbyScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onStartClick = {
+                        navController.navigate(SensorQuizScreen.Question.name) {
+                            popUpTo(SensorQuizScreen.Menu.name) {
+                                saveState = true
+                            }
+                        }
+                    },
+                    onThemeClick = {
+                        navController.navigate(SensorQuizScreen.Theme.name)
+                    }
+                )
             }
 
         }
