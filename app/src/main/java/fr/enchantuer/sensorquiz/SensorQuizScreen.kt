@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,6 +38,7 @@ import fr.enchantuer.sensorquiz.ui.LocalisationScreen
 import fr.enchantuer.sensorquiz.ui.MenuScreen
 import fr.enchantuer.sensorquiz.ui.MultiplayerMenuScreen
 import fr.enchantuer.sensorquiz.ui.QuestionScreen
+import fr.enchantuer.sensorquiz.ui.QuestionViewModel
 import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
 import fr.enchantuer.sensorquiz.ui.ThemeScreen
@@ -113,6 +115,7 @@ fun SensorQuizTopAppBar(
 fun SensorQuizApp(
     navController: NavHostController = rememberNavController(),
 ) {
+    val questionViewModel : QuestionViewModel = viewModel()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = SensorQuizScreen.valueOf(
         backStackEntry?.destination?.route ?: SensorQuizScreen.Menu.name
@@ -175,7 +178,7 @@ fun SensorQuizApp(
             composable(route = SensorQuizScreen.Question.name) {
                 QuestionScreen(
                     modifier = Modifier.fillMaxSize(),
-                    onNextButtonClick = {
+                    onGameOver = {
                         navController.navigate(SensorQuizScreen.Results.name) {
                             popUpTo(SensorQuizScreen.Menu.name) {
                                 saveState = true
@@ -183,13 +186,15 @@ fun SensorQuizApp(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
+                    questionViewModel = questionViewModel
                 )
             }
 
             composable(route = SensorQuizScreen.Results.name) {
                 ResultsScreen(
                     modifier = Modifier.fillMaxSize(),
+                    questionViewModel = questionViewModel,
                     onReplayClick = {
                         navController.navigate(SensorQuizScreen.Question.name) {
                             popUpTo(SensorQuizScreen.Menu.name) {
@@ -206,7 +211,8 @@ fun SensorQuizApp(
                             }
                             launchSingleTop = true
                         }
-                    }
+                    },
+                    navController = navController
                 )
             }
 

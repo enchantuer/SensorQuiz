@@ -24,6 +24,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -35,23 +38,48 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import fr.enchantuer.sensorquiz.R
+import fr.enchantuer.sensorquiz.SensorQuizScreen
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 
 @Composable
 fun ResultsScreen(
     onReplayClick: () -> Unit,
     onHomeClick: () -> Unit,
-    modifier: Modifier = Modifier
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    questionViewModel: QuestionViewModel = viewModel()
 ) {
+    // Restart the game when the user leave the result screen
+    DisposableEffect(navController) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            if (destination.route != SensorQuizScreen.Results.name) questionViewModel.restart()
+        }
+
+        navController.addOnDestinationChangedListener(listener)
+
+        onDispose {
+            navController.removeOnDestinationChangedListener(listener)
+        }
+    }
+
+    val uiState by questionViewModel.uiState.collectAsState()
     Column(
         modifier = modifier
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
-        Score(score = 124, modifier = Modifier.fillMaxWidth())
-        Statistics()
+        Score(
+            score = uiState.score,
+            modifier = Modifier.fillMaxWidth())
+        Statistics(
+            correctAnswers = uiState.correctAnswers,
+            wrongAnswers = uiState.currentQuestionCount - uiState.correctAnswers,        )
         Objectives()
         Row(
             modifier = Modifier,
@@ -123,6 +151,8 @@ fun ResultsButton(
 
 @Composable
 fun Statistics(
+    correctAnswers: Int,
+    wrongAnswers: Int,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -142,11 +172,11 @@ fun Statistics(
             )
             StatisticsItem(
                 text = R.string.correct_answers,
-                value = "10",
+                value = correctAnswers.toString(),
             )
             StatisticsItem(
                 text = R.string.wrong_answers,
-                value = "2",
+                value = wrongAnswers.toString(),
             )
         }
     }
@@ -267,6 +297,6 @@ fun Badge(
 @Composable
 fun ResultsScreenPreview() {
     SensorQuizTheme {
-        ResultsScreen(modifier = Modifier.fillMaxSize(), onReplayClick = {}, onHomeClick = {})
+        ResultsScreen(modifier = Modifier.fillMaxSize(), onReplayClick = {}, onHomeClick = {}, navController = rememberNavController())
     }
 }
