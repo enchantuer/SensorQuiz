@@ -24,6 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
+import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun LobbyScreen(
@@ -32,7 +36,10 @@ fun LobbyScreen(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
