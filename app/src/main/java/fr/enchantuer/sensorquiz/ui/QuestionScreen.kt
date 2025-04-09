@@ -40,6 +40,10 @@ import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.Answers
 import fr.enchantuer.sensorquiz.data.QuestionType
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
+import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun QuestionScreen(
@@ -87,7 +91,11 @@ fun QuestionScreen(
     }
 
     // Centrer le contenu verticalement et horizontalement
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
+    ) {
         Column(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
