@@ -23,8 +23,7 @@ enum class AnswerState {
 
 enum class QuestionType {
     TWO_CHOICES,
-    THREE_CHOICES,
-    SENSOR
+    THREE_CHOICES
 }
 
 val questionList = listOf(

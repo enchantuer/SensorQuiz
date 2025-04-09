@@ -1,5 +1,6 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.data.AnswerState
@@ -43,6 +48,37 @@ fun QuestionScreen(
     questionViewModel: QuestionViewModel = viewModel(),
 ) {
     val uiState by questionViewModel.uiState.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.d("SensorTest", "Sensor Registered")
+                    questionViewModel.startSensor(uiState.questionType)
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.d("SensorTest", "Sensor Unregistered")
+                    questionViewModel.stopSensor()
+                }
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            questionViewModel.stopSensor()
+        }
+    }
+
+    LaunchedEffect(uiState.answerState) {
+        if (uiState.answerState == AnswerState.NONE) {
+            questionViewModel.startSensor(uiState.questionType)
+        }
+    }
 
     LaunchedEffect(uiState.isGameOver) {
         if (uiState.isGameOver) {
@@ -148,7 +184,7 @@ fun Choices(
                 choice = other,
                 userAnswer = userAnswer,
                 answerState = answerState,
-                onClick = { onClick(other) },
+                onClick = { onClick("Autre") },
                 modifier = Modifier
                     .fillMaxWidth(0.5f) // Même largeur approximatif que A et B
                     .weight(1f) // Prend la même hauteur que A et B
