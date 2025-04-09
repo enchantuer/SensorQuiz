@@ -1,10 +1,13 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.enchantuer.sensorquiz.SensorTiltDetection
+import fr.enchantuer.sensorquiz.TiltValue
 import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
 import fr.enchantuer.sensorquiz.data.Question
@@ -28,6 +31,21 @@ class QuestionViewModel : ViewModel() {
     var userAnswer by mutableStateOf("")
         private set
 
+    private var sensorController: SensorTiltDetection? = null
+
+    fun setSensorController(controller: SensorTiltDetection) {
+        this.sensorController = controller
+    }
+
+    fun startSensor(questionType: QuestionType) {
+        sensorController?.questionType = questionType
+        sensorController?.startListening()
+    }
+
+    fun stopSensor() {
+        sensorController?.stopListening()
+    }
+
     private fun pickRandomQuestion() {
         // Continue picking up a new random question until you get one that hasn't been used before
         val newQuestion = questionList.random()
@@ -41,6 +59,20 @@ class QuestionViewModel : ViewModel() {
 
     fun updateUserAnswer(answer: String) {
         if (_uiState.value.answerState == AnswerState.NONE) userAnswer = answer
+    }
+    fun chooseAnswerUsingSensor(tilt: TiltValue) {
+        Log.d("SensorTest", "chooseAnswerUsingSensor: $tilt | ${_currentQuestion.value?.question} | ${_uiState.value.currentQuestion} | ${_uiState.value.currentQuestionCount}")
+        when (tilt) {
+            TiltValue.LEFT -> updateUserAnswer(_currentQuestion.value?.answers?.answer1 ?: "")
+            TiltValue.RIGHT -> updateUserAnswer(_currentQuestion.value?.answers?.answer2 ?: "")
+            TiltValue.SHAKE -> {
+                if (_currentQuestion.value?.type == QuestionType.THREE_CHOICES) {
+                    updateUserAnswer("Autre")
+                }
+            }
+            else -> {}
+        }
+        checkAnswer()
     }
 
     fun checkAnswer() {

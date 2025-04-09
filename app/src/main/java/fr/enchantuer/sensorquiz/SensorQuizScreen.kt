@@ -1,5 +1,6 @@
 package fr.enchantuer.sensorquiz
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -43,6 +45,14 @@ import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
 import fr.enchantuer.sensorquiz.ui.ThemeScreen
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +125,23 @@ fun SensorQuizTopAppBar(
 fun SensorQuizApp(
     navController: NavHostController = rememberNavController(),
 ) {
+    val context = LocalContext.current
+    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     val questionViewModel : QuestionViewModel = viewModel()
+    val sensorController = remember {
+        SensorTiltDetection(sensorManager) { tilt ->
+            Log.d("SensorTest", "onTiltDetected: $tilt")
+            questionViewModel.chooseAnswerUsingSensor(tilt)
+        }
+    }
+
+
+
+    // Important : ne pas réinitialiser à chaque recomposition
+    LaunchedEffect(Unit) {
+        questionViewModel.setSensorController(sensorController)
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = SensorQuizScreen.valueOf(
         backStackEntry?.destination?.route ?: SensorQuizScreen.Menu.name
