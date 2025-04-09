@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -45,9 +44,6 @@ import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
 import fr.enchantuer.sensorquiz.ui.ThemeScreen
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect

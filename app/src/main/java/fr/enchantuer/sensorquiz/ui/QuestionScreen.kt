@@ -56,12 +56,10 @@ fun QuestionScreen(
             when (event) {
                 Lifecycle.Event.ON_RESUME -> {
                     Log.d("SensorTest", "Sensor Registered")
-//                    sensorManager.registerListener(sensorListener.value, rotationVector, SensorManager.SENSOR_DELAY_GAME)
                     questionViewModel.startSensor(uiState.questionType)
                 }
                 Lifecycle.Event.ON_PAUSE -> {
                     Log.d("SensorTest", "Sensor Unregistered")
-//                    sensorManager.unregisterListener(sensorListener.value)
                     questionViewModel.stopSensor()
                 }
                 else -> {}
@@ -72,21 +70,12 @@ fun QuestionScreen(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-//            sensorManager.unregisterListener(sensorListener.value)
             questionViewModel.stopSensor()
         }
     }
 
     LaunchedEffect(uiState.answerState) {
         if (uiState.answerState == AnswerState.NONE) {
-//            isAnswered = false
-//            sensorListener.value.hasResponded = false
-//            lastTilt = TiltValue.NONE
-//            lastTiltTime = 0L
-//            requireNeutralTilt = true
-//
-//            Log.d("SensorTest", "Sensor Re-Registered for new question")
-//            sensorManager.registerListener(sensorListener.value, rotationVector, SensorManager.SENSOR_DELAY_GAME)
             questionViewModel.startSensor(uiState.questionType)
         }
     }

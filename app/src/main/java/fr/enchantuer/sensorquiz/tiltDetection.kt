@@ -14,7 +14,7 @@ class SensorTiltDetection(
     private val onTiltDetected: (tiltValue: TiltValue) -> Unit
 ) : SensorEventListener {
 
-    private val rotationVector: Sensor? =
+    private val linearAcceleration: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
 
 
@@ -36,7 +36,7 @@ class SensorTiltDetection(
         hasResponded = false
         tiltBuffer.clear()
 
-        rotationVector?.let {
+        linearAcceleration?.let {
             sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
         }
     }
