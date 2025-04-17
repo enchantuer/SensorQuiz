@@ -22,9 +22,9 @@ fun MenuScreen(
             .padding(horizontal = 32.dp),
         list = listOfNotNull(
             if (canResume) Pair(stringResource(R.string.resume)) {} else null,
-            Pair(stringResource(R.string.solo)) { onNextButtonClick(SensorQuizScreen.Theme.name) },
+            Pair(stringResource(R.string.solo)) { onNextButtonClick(SensorQuizScreen.Question.name) },
             Pair(stringResource(R.string.multiplayer)) { onNextButtonClick(SensorQuizScreen.MultiplayerMenu.name) },
-            Pair(stringResource(R.string.setting)) { onNextButtonClick(SensorQuizScreen.Settings.name) },
+//            Pair(stringResource(R.string.setting)) { onNextButtonClick(SensorQuizScreen.Settings.name) },
         )
     )
 }

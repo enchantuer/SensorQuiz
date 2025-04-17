@@ -1,47 +1,41 @@
 package fr.enchantuer.sensorquiz.ui
 
-import androidx.annotation.DrawableRes
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.firestore
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.SensorQuizScreen
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
@@ -54,6 +48,8 @@ fun ResultsScreen(
     modifier: Modifier = Modifier,
     questionViewModel: QuestionViewModel = viewModel()
 ) {
+    var listenerDB: ListenerRegistration? = null
+    val playerList = remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
     // Restart the game when the user leave the result screen
     DisposableEffect(navController) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
@@ -80,22 +76,81 @@ fun ResultsScreen(
         Statistics(
             correctAnswers = uiState.correctAnswers,
             wrongAnswers = uiState.currentQuestionCount - uiState.correctAnswers,        )
-        Objectives()
+        if (questionViewModel.gameMode.value == GameMode.MULTI) {
+            val firestore = Firebase.firestore
+            val lobbyCode = questionViewModel.lobbyCode.value
+            val lobbyRef = firestore.collection("lobbies").document(lobbyCode)
+
+            LaunchedEffect(true) {
+                Log.d("LobbyScreen", "Launch effect lobbyCode: $lobbyCode")
+                listenerDB = lobbyRef.addSnapshotListener { snapshot, _ ->
+                    // Get a list of <playerName, score>
+                    if (snapshot != null && snapshot.exists()) {
+                        val playersMap = snapshot.get("players") as? Map<*, *>
+                        val playerScores = playersMap?.mapNotNull { entry ->
+                            val playerData = entry.value as? Map<*, *>
+                            val name = playerData?.get("name") as? String
+                            val score = (playerData?.get("score") as? Long)?.toInt() // Firestore stocke les nombres en Long
+                            if (name != null && score != null) name to score else null
+                        } ?: emptyList()
+
+                        playerList.value = playerScores.sortedByDescending { it.second }
+                    }
+                }
+            }
+
+            PlayerListScore(
+                playerList = playerList.value,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
         Row(
             modifier = Modifier,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            ResultsButton(
-                modifier = Modifier.weight(1f),
-                text = R.string.replay,
-                onClick = onReplayClick
-            )
+            if (questionViewModel.gameMode.value == GameMode.SOLO) {
+                ResultsButton(
+                    modifier = Modifier.weight(1f),
+                    text = R.string.replay,
+                    onClick = onReplayClick
+                )
+            }
             ResultsButton(
                 modifier = Modifier.weight(1f),
                 text = R.string.home,
                 onClick = onHomeClick
             )
+        }
+    }
+}
+
+@Composable
+fun PlayerListScore(
+    playerList: List<Pair<String, Int>>,
+    modifier: Modifier = Modifier,
+) {
+    SettingCard(
+        clickable = false,
+        onClick = {},
+        modifier = modifier
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .padding(16.dp),
+        ) {
+            itemsIndexed(playerList) { index, player ->
+                StatisticsItem(
+                    text = player.first,
+                    value = player.second.toString(),
+                )
+                if (index < playerList.size - 1) { // Évite d'ajouter un divider après la dernière ligne
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color.LightGray
+                    )
+                }
+            }
         }
     }
 }
@@ -171,11 +226,11 @@ fun Statistics(
                     .padding(4.dp)
             )
             StatisticsItem(
-                text = R.string.correct_answers,
+                text = stringResource(R.string.correct_answers),
                 value = correctAnswers.toString(),
             )
             StatisticsItem(
-                text = R.string.wrong_answers,
+                text = stringResource(R.string.wrong_answers),
                 value = wrongAnswers.toString(),
             )
         }
@@ -184,7 +239,7 @@ fun Statistics(
 
 @Composable
 fun StatisticsItem(
-    @StringRes text: Int,
+    text: String,
     value: String,
     modifier: Modifier = Modifier
 ) {
@@ -192,7 +247,7 @@ fun StatisticsItem(
         modifier = modifier
     ) {
         Text(
-            text = stringResource(text),
+            text = text,
             textAlign = TextAlign.Start,
             modifier = Modifier.weight(1f)
         )
@@ -200,96 +255,6 @@ fun StatisticsItem(
             text = value,
             textAlign = TextAlign.End
         )
-    }
-}
-
-@Composable
-fun Objectives(
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier
-    ) {
-        LazyRow(
-            modifier = Modifier
-                .padding(16.dp)
-                .wrapContentHeight(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            items(8) {
-                Badge(
-                    icon = R.drawable.player,
-                    text = "Badge 1 dsds dsdsds d s d sd sds ",
-                    progressCount = 25,
-                    progressObjective = 50
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun Badge(
-    @DrawableRes icon: Int,
-    text: String,
-    progressCount: Int,
-    progressObjective: Int,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.width(128.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = "",
-                tint = Color.Unspecified,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(64.dp)
-            )
-            Text(
-                text = text,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-            )
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .height(IntrinsicSize.Min)
-            ) {
-                LinearProgressIndicator(
-                    progress = { progressCount.toFloat() / progressObjective },
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(96.dp),
-                    trackColor = MaterialTheme.colorScheme.inversePrimary
-                )
-                Text(
-                    text = "$progressCount / $progressObjective",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        shadow = Shadow(
-                            color = Color.Black,
-                            offset = Offset(2f, 2f),
-                            blurRadius = 8f
-                        )
-                    )
-                )
-            }
-        }
     }
 }
 

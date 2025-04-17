@@ -11,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun HorizontalButtonsList(modifier: Modifier = Modifier, list: List<Pair<String, () -> Unit>>) {
+fun HorizontalButtonsList(
+    modifier: Modifier = Modifier,
+    list: List<Pair<String, () -> Unit>>) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center
