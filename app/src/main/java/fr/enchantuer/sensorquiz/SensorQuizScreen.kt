@@ -43,29 +43,35 @@ import fr.enchantuer.sensorquiz.ui.QuestionViewModel
 import fr.enchantuer.sensorquiz.ui.ResultsScreen
 import fr.enchantuer.sensorquiz.ui.SettingsScreen
 import fr.enchantuer.sensorquiz.ui.ThemeScreen
-import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 import android.hardware.SensorManager
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SensorQuizTopAppBar(
-    currentScreen: SensorQuizScreen,
+    currentRoute: String?,
     canNavigateBack: Boolean,
     canAccessSettings: Boolean,
     navigateUp: () -> Unit,
     openSetting: () -> Unit,
     modifier: Modifier = Modifier,
-    questionCount: Pair<Int, Int>? = null
+    questionCount: Pair<Int, Int>? = null,
 ) {
+    Log.d("SensorQuizTopAppBar", "currentRoute: $currentRoute")
+    val baseRoute = currentRoute?.split("/")?.first()
+    Log.d("SensorQuizTopAppBar", "baseRoute: $baseRoute")
+    val title = stringResource(SensorQuizScreen.valueOf(baseRoute ?: SensorQuizScreen.Menu.name).title)
+
     CenterAlignedTopAppBar(
         title = {
             if (questionCount == null) {
                 Text(
-                    text = stringResource(currentScreen.title),
+                    text = title,
                 )
             } else {
                 Box(
@@ -139,18 +145,16 @@ fun SensorQuizApp(
     }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = SensorQuizScreen.valueOf(
-        backStackEntry?.destination?.route ?: SensorQuizScreen.Menu.name
-    )
+    val currentRoute = backStackEntry?.destination?.route
 
     Scaffold (
         topBar ={
             SensorQuizTopAppBar(
-                currentScreen = currentScreen,
+                currentRoute = currentRoute,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
                 canAccessSettings = false,
-                openSetting = { navController.navigate(SensorQuizScreen.Settings.name) }
+                openSetting = { navController.navigate(SensorQuizScreen.Settings.name) },
             )
         }
     ) { innerPadding ->
@@ -242,18 +246,29 @@ fun SensorQuizApp(
                 MultiplayerMenuScreen(
                     modifier = Modifier.fillMaxSize(),
                     onHostClick = {
-                        navController.navigate(SensorQuizScreen.Lobby.name)
+                        Log.d("SensorQuizApp", "Host screen route, lobbyCode: $it")
+                        navController.navigate("${SensorQuizScreen.Lobby.name}/$it/true")
                     },
                     onJoinClick = {
-                        navController.navigate(SensorQuizScreen.Lobby.name)
+                        navController.navigate("${SensorQuizScreen.Lobby.name}/$it/false")
                     }
                 )
             }
 
-            composable(route = SensorQuizScreen.Lobby.name) {
+            composable(
+                route = "${SensorQuizScreen.Lobby.name}/{lobbyCode}/{isHost}",
+                arguments = listOf(
+                    navArgument("lobbyCode") { type = NavType.StringType },
+                    navArgument("isHost") { type = NavType.BoolType }
+                )
+            ) {
+                Log.d("SensorQuizApp", "Lobby screen route")
+                val lobbyCode = it.arguments?.getString("lobbyCode") ?: ""
+                val isHost = it.arguments?.getBoolean("isHost") ?: false
+                Log.d("SensorQuizApp", "lobbyCode: $lobbyCode, isHost: $isHost")
                 LobbyScreen(
                     modifier = Modifier.fillMaxSize(),
-                    onStartClick = {
+                    onStartGame = {
                         navController.navigate(SensorQuizScreen.Question.name) {
                             popUpTo(SensorQuizScreen.Menu.name) {
                                 saveState = true
@@ -262,7 +277,10 @@ fun SensorQuizApp(
                     },
                     onThemeClick = {
                         navController.navigate(SensorQuizScreen.Theme.name)
-                    }
+                    },
+                    lobbyCode = lobbyCode,
+                    questionViewModel = questionViewModel,
+                    isHost = isHost,
                 )
             }
         }
@@ -280,6 +298,7 @@ enum class SensorQuizScreen(@StringRes val title: Int) {
     Lobby(R.string.lobby),
 }
 
+/*
 @Preview
 @Composable
 fun TopAppBarPreview() {
@@ -302,4 +321,4 @@ fun TopAppBarQuestionCountPreview() {
     SensorQuizTheme {
         SensorQuizTopAppBar(canNavigateBack = true, canAccessSettings = true, navigateUp = {}, openSetting = {}, questionCount = Pair(2, 10), currentScreen = SensorQuizScreen.Menu)
     }
-}
+}*/
