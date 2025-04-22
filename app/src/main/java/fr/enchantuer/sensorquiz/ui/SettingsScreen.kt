@@ -48,6 +48,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
+import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun SettingsScreen(
@@ -65,6 +68,8 @@ fun SettingsScreen(
 
     LazyColumn(
         modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally

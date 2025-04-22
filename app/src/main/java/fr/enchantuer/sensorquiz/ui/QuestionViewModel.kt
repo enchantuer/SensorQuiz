@@ -17,6 +17,12 @@ import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
 import fr.enchantuer.sensorquiz.data.Question
 import fr.enchantuer.sensorquiz.data.QuestionType
 import fr.enchantuer.sensorquiz.data.questionList
+import fr.enchantuer.sensorquiz.data.*
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.educationQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.worldCultureQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.entertainmentQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.logicMemoryQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.techQuestions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,6 +76,10 @@ class QuestionViewModel : ViewModel() {
         nextQuestion()
     }
 
+    var selectedCategory: String? = null
+
+    private var dynamicQuestionList: List<Question> = questionList
+
     private fun pickRandomQuestion() {
         // Continue picking up a new random question until you get one that hasn't been used before
         val newQuestion = questionList.random()
@@ -79,6 +89,12 @@ class QuestionViewModel : ViewModel() {
             usedQuestions.add(newQuestion.id)
             _currentQuestion.value = newQuestion
         }
+//        val available = dynamicQuestionList.filterNot { usedQuestions.contains(it.id) }
+//        if (available.isEmpty()) return
+//
+//        val newQuestion = available.random()
+//        usedQuestions.add(newQuestion.id)
+//        _currentQuestion.value = newQuestion
     }
 
     fun updateUserAnswer(answer: String) {
@@ -113,9 +129,7 @@ class QuestionViewModel : ViewModel() {
             }
         } else {
             _uiState.update { currentState ->
-                currentState.copy(
-                    answerState = AnswerState.WRONG,
-                )
+                currentState.copy(answerState = AnswerState.WRONG)
             }
         }
 
@@ -178,10 +192,32 @@ class QuestionViewModel : ViewModel() {
             }
             updateUserAnswer("")
         }
+
+//        if (usedQuestions.size == dynamicQuestionList.size) {
+//            _uiState.update { currentState ->
+//                currentState.copy(
+//                    answerState = AnswerState.NONE,
+//                    isGameOver = true
+//                )
+//            }
+//        } else {
+//            pickRandomQuestion()
+//            _uiState.update { currentState ->
+//                currentState.copy(
+//                    answerState = AnswerState.NONE,
+//                    currentQuestionCount = currentState.currentQuestionCount.inc(),
+//                    currentQuestion = _currentQuestion.value?.question ?: "",
+//                    questionType = _currentQuestion.value?.type ?: QuestionType.TWO_CHOICES,
+//                    answers = _currentQuestion.value?.answers
+//                )
+//            }
+//        }
+//        updateUserAnswer("")
     }
 
     fun restart() {
         usedQuestions.clear()
+        loadQuestionsForCategory()
         pickRandomQuestion()
         _gameMode.value = GameMode.SOLO
         _lobbyCode.value = ""
@@ -192,6 +228,17 @@ class QuestionViewModel : ViewModel() {
             questionType = _currentQuestion.value?.type ?: QuestionType.TWO_CHOICES,
             answers = _currentQuestion.value?.answers,
         )
+    }
+
+    fun loadQuestionsForCategory() {
+        dynamicQuestionList = when (selectedCategory) {
+            "Education" -> educationQuestions
+            "WorldCulture" -> worldCultureQuestions
+            "Entertainment" -> entertainmentQuestions
+            "LogicMemory" -> logicMemoryQuestions
+            "Tech" -> techQuestions
+            else -> questionList
+        }
     }
 
     init {
