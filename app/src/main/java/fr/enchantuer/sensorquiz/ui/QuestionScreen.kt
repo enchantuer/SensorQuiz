@@ -1,22 +1,10 @@
 package fr.enchantuer.sensorquiz.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,84 +12,36 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.Answers
 import fr.enchantuer.sensorquiz.data.QuestionType
-import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
 import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
+import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
-
-@Composable
-fun QuestionScreen(
-    onGameOver: () -> Unit,
-    modifier: Modifier = Modifier,
-    questionViewModel: QuestionViewModel = viewModel(),
-) {
-    val uiState by questionViewModel.uiState.collectAsState()
-
-    LaunchedEffect(uiState.isGameOver) {
-        if (uiState.isGameOver) {
-            onGameOver()
-        }
-    }
-
-    // Centrer le contenu verticalement et horizontalement
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .violetGradientBackground()
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Question(
-                question = uiState.currentQuestion,
-                imageId = R.drawable.ic_launcher_foreground,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-            Choices(
-                choices = uiState.answers ?: Answers("True", "False"),
-                questionType = uiState.questionType,
-                answerState = uiState.answerState,
-                userAnswer = questionViewModel.userAnswer,
-                onClick = { choice ->
-                    questionViewModel.updateUserAnswer(choice)
-                    questionViewModel.checkAnswer()
-                }
-            )
-        }
-    }
-}
 
 @Composable
 fun Question(
     question: String,
-    imageId: Int,
     modifier: Modifier = Modifier,
 ) {
-    Card (modifier = modifier) {
+    Card(modifier = modifier) {
         Column(
+            modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = imageId),
-                contentDescription = "",
-            )
             Text(
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center,
                 text = question,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Color.Black
             )
         }
     }
@@ -109,58 +49,56 @@ fun Question(
 
 @Composable
 fun Choices(
-    onClick: (choice: String) -> Unit,
+    onClick: (String) -> Unit,
     choices: Answers,
     questionType: QuestionType,
     answerState: AnswerState,
     userAnswer: String,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    Card(
         modifier = modifier
             .padding(horizontal = 16.dp)
-            .height(IntrinsicSize.Min),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
-            modifier = Modifier
-                .height(IntrinsicSize.Max)
-                .weight(1f), // Aligne la hauteur minimale des boutons A et B
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ChoiceButton(
-                choices.answer1,
-                answerState = answerState,
-                userAnswer = userAnswer,
-                onClick = { onClick(choices.answer1) },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight() // Prend la hauteur du plus grand bouton
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            ChoiceButton(
-                choices.answer2,
-                answerState = answerState,
-                userAnswer = userAnswer,
-                onClick = { onClick(choices.answer2) },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ChoiceButton(
+                    choice = choices.answer1,
+                    answerState = answerState,
+                    userAnswer = userAnswer,
+                    onClick = { onClick(choices.answer1) },
+                    modifier = Modifier.weight(1f)
+                )
+                ChoiceButton(
+                    choice = choices.answer2,
+                    answerState = answerState,
+                    userAnswer = userAnswer,
+                    onClick = { onClick(choices.answer2) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-        if (questionType === QuestionType.THREE_CHOICES) {
-            Spacer(modifier = Modifier.height(16.dp))
-            val other = stringResource(R.string.other)
-            ChoiceButton(
-                choice = other,
-                userAnswer = userAnswer,
-                answerState = answerState,
-                onClick = { onClick(other) },
-                modifier = Modifier
-                    .fillMaxWidth(0.5f) // Même largeur approximatif que A et B
-                    .weight(1f) // Prend la même hauteur que A et B
-            )
+            if (questionType == QuestionType.THREE_CHOICES) {
+                val other = "Autre"
+                ChoiceButton(
+                    choice = other,
+                    userAnswer = userAnswer,
+                    answerState = answerState,
+                    onClick = { onClick(other) },
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                )
+            }
         }
     }
 }
@@ -174,17 +112,188 @@ fun ChoiceButton(
     modifier: Modifier = Modifier
 ) {
     val color = when {
-        userAnswer == choice  && answerState == AnswerState.CORRECT -> Color.Green
-        userAnswer == choice  && answerState == AnswerState.WRONG -> Color.Red
-        else -> MaterialTheme.colorScheme.primary
+        userAnswer == choice && answerState == AnswerState.CORRECT -> Color.Green
+        userAnswer == choice && answerState == AnswerState.WRONG -> Color.Red
+        else -> LavenderPurple
     }
 
     Button(
         modifier = modifier,
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = color)
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = color,
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Text(text = choice)
+        Text(
+            text = choice,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Bold
+            )
+        )
+    }
+}
+
+@Composable
+fun ProgressHeader(current: Int, total: Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "${"%02d".format(current)} Question",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Text(
+                    text = "$current sur $total",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Black.copy(alpha = 0.3f)
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(total) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(9.dp)
+                            .background(
+                                color = if (index < current) LavenderPurple else Color.LightGray,
+                                shape = CircleShape
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuestionScreen(
+    selectedCategory: String,
+    onGameOver: () -> Unit,
+    modifier: Modifier = Modifier,
+    questionViewModel: QuestionViewModel = viewModel(),
+) {
+    val uiState by questionViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        questionViewModel.selectedCategory = selectedCategory
+        questionViewModel.restart()
+    }
+
+    LaunchedEffect(uiState.isGameOver) {
+        if (uiState.isGameOver) {
+            onGameOver()
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
+            .padding(16.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.92f)
+                .align(Alignment.Center),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 🔼 Barre de progression
+                ProgressHeader(current = uiState.currentQuestionCount, total = 15)
+
+                // 🧠 Question centrée avec texte agrandi
+                Text(
+                    text = uiState.currentQuestion,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    lineHeight = 38.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                // ✅ Réponses
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ChoiceButton(
+                            choice = uiState.answers?.answer1 ?: "Vrai",
+                            answerState = uiState.answerState,
+                            userAnswer = questionViewModel.userAnswer,
+                            onClick = {
+                                questionViewModel.updateUserAnswer(uiState.answers?.answer1 ?: "Vrai")
+                                questionViewModel.checkAnswer()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        ChoiceButton(
+                            choice = uiState.answers?.answer2 ?: "Faux",
+                            answerState = uiState.answerState,
+                            userAnswer = questionViewModel.userAnswer,
+                            onClick = {
+                                questionViewModel.updateUserAnswer(uiState.answers?.answer2 ?: "Faux")
+                                questionViewModel.checkAnswer()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    if (uiState.questionType == QuestionType.THREE_CHOICES) {
+                        // ✅ Bouton "Autre" centré
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            ChoiceButton(
+                                choice = "Autre",
+                                answerState = uiState.answerState,
+                                userAnswer = questionViewModel.userAnswer,
+                                onClick = {
+                                    questionViewModel.updateUserAnswer("Autre")
+                                    questionViewModel.checkAnswer()
+                                },
+                                modifier = Modifier.fillMaxWidth(0.5f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -192,6 +301,9 @@ fun ChoiceButton(
 @Composable
 fun QuestionScreenPreview() {
     SensorQuizTheme {
-        QuestionScreen(onGameOver = {})
+        QuestionScreen(
+            selectedCategory = "Education",
+            onGameOver = {}
+        )
     }
 }

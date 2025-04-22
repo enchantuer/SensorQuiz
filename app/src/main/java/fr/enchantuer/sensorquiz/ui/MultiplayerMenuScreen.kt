@@ -52,18 +52,18 @@ import androidx.compose.ui.res.painterResource
 
 import androidx.compose.runtime.*
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.height
 
 @Composable
 fun MultiplayerMenuScreen(
     onHostClick: () -> Unit = {},
     onJoinClick: (String) -> Unit = {},
+    onNextClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
     var codeInput by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     Box(
         modifier = modifier
@@ -78,44 +78,26 @@ fun MultiplayerMenuScreen(
         ) {
             // 🔹 Titre
             Text(
-                text = "Inviter un ami",
-                style = MaterialTheme.typography.headlineSmall.copy(
+                text = "Prêt à jouer ?\nEntre ton code ! 🎮",
+                style = MaterialTheme.typography.headlineMedium.copy(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                textAlign = TextAlign.Center
             )
 
-            // 🔹 Avatars + VS
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Avatar femme à gauche
-                Image(
-                    painter = painterResource(id = R.drawable.femme),
-                    contentDescription = "Avatar femme",
-                    modifier = Modifier.width(80.dp)
-                )
+            // 🔹 Image
+            Image(
+                painter = painterResource(id = R.drawable.multijoueur),
+                contentDescription = "Illustration multijoueur",
+                modifier = Modifier
+                    .width(160.dp)
+                    .padding(top = 8.dp)
+            )
 
-                // Texte VS
-                Text(
-                    text = "VS",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
+            Spacer(modifier = Modifier.height(80.dp))
 
-                // Avatar homme à droite
-                Image(
-                    painter = painterResource(id = R.drawable.homme),
-                    contentDescription = "Avatar homme",
-                    modifier = Modifier.width(80.dp)
-                )
-            }
-
-            // 🔹 Bloc blanc (Card)
+            // 🔹 Bloc blanc
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -136,62 +118,45 @@ fun MultiplayerMenuScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // Deux boutons
-                    Row(
+                    // 🔹 Bouton "Suivant"
+                    Button(
+                        onClick = { onNextClick() },
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LavenderPurple,
+                            contentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(6.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        // Copier
-                        Button(
-                            onClick = {
-                                clipboardManager.setText(AnnotatedString(codeInput))
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Code copié dans le presse-papiers")
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LavenderPurple,
-                                contentColor = Color.White
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(6.dp)
-                        ) {
-                            Text(
-                                "Copier",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Suivant")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Suivant",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
 
-                        // Partager
-                        Button(
-                            onClick = {
-                                val sendIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, codeInput)
-                                    type = "text/plain"
-                                }
-                                val shareIntent = Intent.createChooser(sendIntent, null)
-                                context.startActivity(shareIntent)
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LavenderPurple,
-                                contentColor = Color.White
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(6.dp)
-                        ) {
-                            Icon(Icons.Default.Share, contentDescription = "Partager")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Partager",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
+                    // 🔹 Bouton "Créer une partie" sans icône
+                    Button(
+                        onClick = { onHostClick() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = LavenderPurple,
+                            contentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(6.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            "Créer une partie",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+                        )
                     }
                 }
             }
 
-            // Snackbar Host
+            // Snackbar
             SnackbarHost(hostState = snackbarHostState)
         }
     }

@@ -18,24 +18,24 @@ import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun ThemeScreen(
-    onNextButtonClick: (String) -> Unit,
+    selectedCategory: String? = null,
+    onNextButtonClick: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .violetGradientBackground(), // ✅ FOND DÉGRADÉ RÉTABLI
+            .violetGradientBackground(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 80.dp), // remonter la Card
+                .padding(bottom = 80.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // ✅ Logo statique sans animation
             Image(
                 painter = painterResource(id = R.drawable.logo_sensor_quiz),
                 contentDescription = "Logo SensorQuiz",
@@ -44,7 +44,6 @@ fun ThemeScreen(
                     .padding(top = 16.dp)
             )
 
-            // ✅ Card contenant les boutons
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -56,11 +55,11 @@ fun ThemeScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ThemeButton("🎓 Éducation") { onNextButtonClick("Éducation") }
-                    ThemeButton("🌍 Monde et culture") { onNextButtonClick("Monde et culture") }
-                    ThemeButton("🎭 Divertissement") { onNextButtonClick("Divertissement") }
-                    ThemeButton("🧠 Logique & mémoire") { onNextButtonClick("Logique & mémoire") }
-                    ThemeButton("📱 Tech & numérique") { onNextButtonClick("Tech & numérique") }
+                    ThemeButton("🎓 Éducation") { onNextButtonClick("Education") }
+                    ThemeButton("🌍 Monde et culture") { onNextButtonClick("WorldCulture") }
+                    ThemeButton("🎭 Divertissement") { onNextButtonClick("Entertainment") }
+                    ThemeButton("🧠 Logique & mémoire") { onNextButtonClick("LogicMemory") }
+                    ThemeButton("📱 Tech & numérique") { onNextButtonClick("Tech") }
                 }
             }
         }

@@ -5,11 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.enchantuer.sensorquiz.data.AnswerState
-import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
-import fr.enchantuer.sensorquiz.data.Question
-import fr.enchantuer.sensorquiz.data.QuestionType
-import fr.enchantuer.sensorquiz.data.questionList
+import fr.enchantuer.sensorquiz.data.*
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.educationQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.worldCultureQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.entertainmentQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.logicMemoryQuestions
+import fr.enchantuer.sensorquiz.data.QuestionsCategories.techQuestions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +19,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class QuestionViewModel : ViewModel() {
-    private val _currentQuestion = MutableStateFlow<Question?>(null)
 
+    private val _currentQuestion = MutableStateFlow<Question?>(null)
     private val _uiState = MutableStateFlow(QuestionUiState())
     val uiState: StateFlow<QuestionUiState> = _uiState.asStateFlow()
 
@@ -28,15 +29,17 @@ class QuestionViewModel : ViewModel() {
     var userAnswer by mutableStateOf("")
         private set
 
+    var selectedCategory: String? = null
+
+    private var dynamicQuestionList: List<Question> = questionList
+
     private fun pickRandomQuestion() {
-        // Continue picking up a new random question until you get one that hasn't been used before
-        val newQuestion = questionList.random()
-        if (usedQuestions.contains(newQuestion.id)) {
-            return pickRandomQuestion()
-        } else {
-            usedQuestions.add(newQuestion.id)
-            _currentQuestion.value = newQuestion
-        }
+        val available = dynamicQuestionList.filterNot { usedQuestions.contains(it.id) }
+        if (available.isEmpty()) return
+
+        val newQuestion = available.random()
+        usedQuestions.add(newQuestion.id)
+        _currentQuestion.value = newQuestion
     }
 
     fun updateUserAnswer(answer: String) {
@@ -44,7 +47,6 @@ class QuestionViewModel : ViewModel() {
     }
 
     fun checkAnswer() {
-        // If the user has already answered, do nothing
         if (_uiState.value.answerState != AnswerState.NONE) return
 
         if (userAnswer.equals(_currentQuestion.value?.correctAnswer, ignoreCase = true)) {
@@ -57,20 +59,18 @@ class QuestionViewModel : ViewModel() {
             }
         } else {
             _uiState.update { currentState ->
-                currentState.copy(
-                    answerState = AnswerState.WRONG,
-                )
+                currentState.copy(answerState = AnswerState.WRONG)
             }
         }
 
         viewModelScope.launch {
-            delay(200) // Attendre 200ms avant de passer à la prochaine question
+            delay(200)
             nextQuestion()
         }
     }
 
     private fun nextQuestion() {
-        if (usedQuestions.size == MAX_NUMBER_OF_QUESTIONS || usedQuestions.size == questionList.size) {
+        if (usedQuestions.size == dynamicQuestionList.size) {
             _uiState.update { currentState ->
                 currentState.copy(
                     answerState = AnswerState.NONE,
@@ -83,7 +83,6 @@ class QuestionViewModel : ViewModel() {
                 currentState.copy(
                     answerState = AnswerState.NONE,
                     currentQuestionCount = currentState.currentQuestionCount.inc(),
-
                     currentQuestion = _currentQuestion.value?.question ?: "",
                     questionType = _currentQuestion.value?.type ?: QuestionType.TWO_CHOICES,
                     answers = _currentQuestion.value?.answers
@@ -95,12 +94,24 @@ class QuestionViewModel : ViewModel() {
 
     fun restart() {
         usedQuestions.clear()
+        loadQuestionsForCategory()
         pickRandomQuestion()
         _uiState.value = QuestionUiState(
             currentQuestion = _currentQuestion.value?.question ?: "",
             questionType = _currentQuestion.value?.type ?: QuestionType.TWO_CHOICES,
             answers = _currentQuestion.value?.answers,
         )
+    }
+
+    fun loadQuestionsForCategory() {
+        dynamicQuestionList = when (selectedCategory) {
+            "Education" -> educationQuestions
+            "WorldCulture" -> worldCultureQuestions
+            "Entertainment" -> entertainmentQuestions
+            "LogicMemory" -> logicMemoryQuestions
+            "Tech" -> techQuestions
+            else -> questionList
+        }
     }
 
     init {
