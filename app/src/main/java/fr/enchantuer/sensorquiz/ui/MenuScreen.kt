@@ -22,7 +22,7 @@ import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 @Composable
 fun MenuScreen(
     canResume: Boolean,
-    onNextButtonClick: (String, String?) -> Unit,
+    onNextButtonClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -65,17 +65,17 @@ fun MenuScreen(
 
                     // Mode solo → passe vers ThemeScreen avec null
                     MenuButton(text = "🎯 Mode solo") {
-                        onNextButtonClick(SensorQuizScreen.Theme.name, null)
+                        onNextButtonClick(SensorQuizScreen.Theme.name)
                     }
 
                     // Défi en ligne → passe vers MultiplayerMenu sans catégorie
-                    MenuButton(text = "🧩 Défi en ligne") {
-                        onNextButtonClick(SensorQuizScreen.MultiplayerMenu.name, null)
+                    MenuButton(text = "🧩 Multijoueur") {
+                        onNextButtonClick(SensorQuizScreen.MultiplayerMenu.name)
                     }
 
                     // Préférences → idem
                     MenuButton(text = "⚙️ Préférences") {
-                        onNextButtonClick(SensorQuizScreen.Settings.name, null)
+                        onNextButtonClick(SensorQuizScreen.Settings.name)
                     }
                 }
             }
@@ -117,7 +117,7 @@ fun MenuScreenPreview() {
         modifier = Modifier
             .fillMaxSize()
             .violetGradientBackground(),
-        onNextButtonClick = { _, _ -> }
+        onNextButtonClick = { _ -> }
     )
 }
 
@@ -129,6 +129,6 @@ fun MenuScreenResumePreview() {
         modifier = Modifier
             .fillMaxSize()
             .background(LavenderPurple),
-        onNextButtonClick = { _, _ -> }
+        onNextButtonClick = { _ -> }
     )
 }

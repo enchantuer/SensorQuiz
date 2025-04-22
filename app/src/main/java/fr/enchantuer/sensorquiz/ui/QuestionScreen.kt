@@ -1,11 +1,30 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,14 +36,159 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.Answers
+import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
 import fr.enchantuer.sensorquiz.data.QuestionType
 import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
+
+@Composable
+fun QuestionScreen(
+    selectedCategory: String,
+    onGameOver: () -> Unit,
+    modifier: Modifier = Modifier,
+    questionViewModel: QuestionViewModel = viewModel(),
+) {
+    val uiState by questionViewModel.uiState.collectAsState()
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.d("SensorTest", "Sensor Registered")
+                    questionViewModel.startSensor(uiState.questionType)
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.d("SensorTest", "Sensor Unregistered")
+                    questionViewModel.stopSensor()
+                }
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            questionViewModel.stopSensor()
+        }
+    }
+
+    LaunchedEffect(uiState.answerState) {
+        if (uiState.answerState == AnswerState.NONE) {
+            questionViewModel.startSensor(uiState.questionType)
+        }
+    }
+
+    LaunchedEffect(uiState.isGameOver) {
+        if (uiState.isGameOver) {
+            onGameOver()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        questionViewModel.selectedCategory = selectedCategory
+        questionViewModel.restart()
+    }
+
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
+            .padding(16.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.92f)
+                .align(Alignment.Center),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 🔼 Barre de progression
+                ProgressHeader(current = uiState.currentQuestionCount, total = MAX_NUMBER_OF_QUESTIONS)
+
+                // 🧠 Question centrée avec texte agrandi
+                Text(
+                    text = uiState.currentQuestion,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    lineHeight = 38.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                // ✅ Réponses
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ChoiceButton(
+                            choice = uiState.answers?.answer1 ?: "Vrai",
+                            answerState = uiState.answerState,
+                            userAnswer = questionViewModel.userAnswer,
+                            onClick = {
+                                questionViewModel.updateUserAnswer(uiState.answers?.answer1 ?: "Vrai")
+                                questionViewModel.checkAnswer()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        ChoiceButton(
+                            choice = uiState.answers?.answer2 ?: "Faux",
+                            answerState = uiState.answerState,
+                            userAnswer = questionViewModel.userAnswer,
+                            onClick = {
+                                questionViewModel.updateUserAnswer(uiState.answers?.answer2 ?: "Faux")
+                                questionViewModel.checkAnswer()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    if (uiState.questionType == QuestionType.THREE_CHOICES) {
+                        // ✅ Bouton "Autre" centré
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            ChoiceButton(
+                                choice = "Autre",
+                                answerState = uiState.answerState,
+                                userAnswer = questionViewModel.userAnswer,
+                                onClick = {
+                                    questionViewModel.updateUserAnswer("Autre")
+                                    questionViewModel.checkAnswer()
+                                },
+                                modifier = Modifier.fillMaxWidth(0.5f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun Question(
@@ -49,7 +213,7 @@ fun Question(
 
 @Composable
 fun Choices(
-    onClick: (String) -> Unit,
+    onClick: (choice: String) -> Unit,
     choices: Answers,
     questionType: QuestionType,
     answerState: AnswerState,
@@ -182,115 +346,6 @@ fun ProgressHeader(current: Int, total: Int) {
                                 shape = CircleShape
                             )
                     )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun QuestionScreen(
-    selectedCategory: String,
-    onGameOver: () -> Unit,
-    modifier: Modifier = Modifier,
-    questionViewModel: QuestionViewModel = viewModel(),
-) {
-    val uiState by questionViewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        questionViewModel.selectedCategory = selectedCategory
-        questionViewModel.restart()
-    }
-
-    LaunchedEffect(uiState.isGameOver) {
-        if (uiState.isGameOver) {
-            onGameOver()
-        }
-    }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .violetGradientBackground()
-            .padding(16.dp)
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.92f)
-                .align(Alignment.Center),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.cardElevation(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 🔼 Barre de progression
-                ProgressHeader(current = uiState.currentQuestionCount, total = 15)
-
-                // 🧠 Question centrée avec texte agrandi
-                Text(
-                    text = uiState.currentQuestion,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 30.sp,
-                    lineHeight = 38.sp,
-                    color = Color.Black,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                // ✅ Réponses
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        ChoiceButton(
-                            choice = uiState.answers?.answer1 ?: "Vrai",
-                            answerState = uiState.answerState,
-                            userAnswer = questionViewModel.userAnswer,
-                            onClick = {
-                                questionViewModel.updateUserAnswer(uiState.answers?.answer1 ?: "Vrai")
-                                questionViewModel.checkAnswer()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        ChoiceButton(
-                            choice = uiState.answers?.answer2 ?: "Faux",
-                            answerState = uiState.answerState,
-                            userAnswer = questionViewModel.userAnswer,
-                            onClick = {
-                                questionViewModel.updateUserAnswer(uiState.answers?.answer2 ?: "Faux")
-                                questionViewModel.checkAnswer()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    if (uiState.questionType == QuestionType.THREE_CHOICES) {
-                        // ✅ Bouton "Autre" centré
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            ChoiceButton(
-                                choice = "Autre",
-                                answerState = uiState.answerState,
-                                userAnswer = questionViewModel.userAnswer,
-                                onClick = {
-                                    questionViewModel.updateUserAnswer("Autre")
-                                    questionViewModel.checkAnswer()
-                                },
-                                modifier = Modifier.fillMaxWidth(0.5f)
-                            )
-                        }
-                    }
                 }
             }
         }

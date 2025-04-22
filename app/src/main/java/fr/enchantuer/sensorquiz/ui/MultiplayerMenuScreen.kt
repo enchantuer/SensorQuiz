@@ -1,8 +1,8 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,12 +19,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import fr.enchantuer.sensorquiz.R
+import fr.enchantuer.sensorquiz.data.Question
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
-import androidx.compose.foundation.background
 import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
 import androidx.compose.foundation.layout.fillMaxSize
 import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
@@ -36,32 +37,34 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
-import android.content.Intent
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.*
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 
 
 import androidx.compose.runtime.*
-import kotlinx.coroutines.launch
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.height
 
 @Composable
 fun MultiplayerMenuScreen(
-    onHostClick: () -> Unit = {},
-    onJoinClick: (String) -> Unit = {},
-    onNextClick: () -> Unit = {},
+    onHostClick: (String) -> Unit,
+    onJoinClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    FirebaseAuth.getInstance().signInAnonymously()
+        .addOnCompleteListener() { task ->
+            if (task.isSuccessful) {
+                val user = FirebaseAuth.getInstance().currentUser
+                val userId = user?.uid
+                Log.d("FirebaseAuth", "User ID: $userId")
+            } else {
+                Log.e("FirebaseAuth", "Sign in failed", task.exception)
+            }
+        }
+
     var codeInput by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -120,7 +123,12 @@ fun MultiplayerMenuScreen(
 
                     // 🔹 Bouton "Suivant"
                     Button(
-                        onClick = { onNextClick() },
+                        onClick = { joinLobby(
+                            userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                            name = "test2",
+                            code = codeInput,
+                            onJoined = onJoinClick
+                        ) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = LavenderPurple,
@@ -139,7 +147,11 @@ fun MultiplayerMenuScreen(
 
                     // 🔹 Bouton "Créer une partie" sans icône
                     Button(
-                        onClick = { onHostClick() },
+                        onClick = { createLobby(
+                            userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                            name = "test",
+                            onCreated = onHostClick
+                        ) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = LavenderPurple,
@@ -160,6 +172,40 @@ fun MultiplayerMenuScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
     }
+}
+
+fun createLobby(userId: String, name: String, onCreated: (String) -> Unit) {
+    Log.d("createLobby", "userId: $userId")
+    val lobbyCode = generateCode()
+    Log.d("createLobby", "lobbyCode: $lobbyCode")
+    val lobbyData = mapOf(
+        "hostId" to userId,
+        "status" to "waiting",
+        "players" to mapOf(userId to mapOf("name" to name, "score" to 0)),
+        "questions" to listOf<Question>(),
+    )
+    Log.d("createLobby", "lobbyData: $lobbyData")
+    Firebase.firestore.collection("lobbies").document(lobbyCode).set(lobbyData)
+        .addOnSuccessListener {
+            Log.d("createLobby", "Lobby created successfully")
+            onCreated(lobbyCode)
+        }
+    Log.d("createLobby", "Lobby creation failed")
+}
+
+fun joinLobby(userId: String, name: String, code: String, onJoined: (String) -> Unit) {
+    val lobbyRef = Firebase.firestore.collection("lobbies").document(code)
+    lobbyRef.get().addOnSuccessListener { document ->
+        if (document.exists() && document.getString("status") == "waiting") {
+            lobbyRef.update("players.$userId", mapOf("name" to name, "score" to 0))
+            onJoined(code)
+        }
+    }
+}
+
+fun generateCode(): String {
+    val allowedChars = ('A'..'Z') + ('0'..'9')
+    return (1..6).map { allowedChars.random() }.joinToString("")
 }
 
 @Preview(showBackground = true)
