@@ -42,7 +42,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -66,8 +65,7 @@ fun LobbyScreen(
     isHost: Boolean,
     onStartGame: () -> Unit,
     questionViewModel: QuestionViewModel,
-    modifier: Modifier = Modifier,
-    navBackStackEntry: NavBackStackEntry
+    modifier: Modifier = Modifier
 ) {
     Log.d("LobbyScreen", "First lobbyCode: $lobbyCode")
     val playerId = Firebase.auth.currentUser?.uid ?: ""
@@ -81,14 +79,7 @@ fun LobbyScreen(
     var status by remember { mutableStateOf("waiting") }
     var category by remember { mutableStateOf("") }
 
-    val savedStateHandle = navBackStackEntry.savedStateHandle
-    var isInLobby by remember {
-        mutableStateOf(savedStateHandle.get<Boolean>("isInLobby") ?: false)
-    }
-
-    LaunchedEffect(key1 = true) {
-        savedStateHandle.remove<Boolean>("isInLobby")
-    }
+    var isInLobby by remember { mutableStateOf(true) }
 
     // Listener Firestore
     Log.d("LobbyScreen", "lobbyCode: $lobbyCode")
@@ -293,7 +284,6 @@ fun LobbyScreen(
             listener?.remove()
             // Appelle la fonction pour supprimer le joueur lorsqu'il quitte ou l'app
             if (status == "waiting" && isInLobby) {
-                questionViewModel.setLobbyCode("")
                 removePlayerFromLobby(playerId) // Remplace par la variable du joueur qui quitte
             }
         }

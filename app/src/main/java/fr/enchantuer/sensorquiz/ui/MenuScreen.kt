@@ -23,6 +23,7 @@ import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 fun MenuScreen(
     canResume: Boolean,
     onNextButtonClick: (String) -> Unit,
+    questionViewModel: QuestionViewModel,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -65,6 +66,7 @@ fun MenuScreen(
 
                     // Mode solo → passe vers ThemeScreen avec null
                     MenuButton(text = "🎯 Mode solo") {
+                        questionViewModel.setLobbyCode("")
                         onNextButtonClick(SensorQuizScreen.Theme.name)
                     }
 
@@ -117,7 +119,8 @@ fun MenuScreenPreview() {
         modifier = Modifier
             .fillMaxSize()
             .violetGradientBackground(),
-        onNextButtonClick = { _ -> }
+        onNextButtonClick = { _ -> },
+        questionViewModel = QuestionViewModel()
     )
 }
 
@@ -129,6 +132,7 @@ fun MenuScreenResumePreview() {
         modifier = Modifier
             .fillMaxSize()
             .background(LavenderPurple),
-        onNextButtonClick = { _ -> }
+        onNextButtonClick = { _ -> },
+        questionViewModel = QuestionViewModel()
     )
 }
