@@ -34,11 +34,15 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.SensorQuizScreen
+import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
+import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 
 @Composable
 fun ResultsScreen(
@@ -54,9 +58,7 @@ fun ResultsScreen(
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
             if (destination.route != SensorQuizScreen.Results.name) questionViewModel.restart()
         }
-
         navController.addOnDestinationChangedListener(listener)
-
         onDispose {
             navController.removeOnDestinationChangedListener(listener)
         }
@@ -65,13 +67,16 @@ fun ResultsScreen(
     val uiState by questionViewModel.uiState.collectAsState()
     Column(
         modifier = modifier
+            .fillMaxSize()
+            .violetGradientBackground()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
         Score(
             score = uiState.score,
-            modifier = Modifier.fillMaxWidth())
+            modifier = Modifier.fillMaxWidth()
+        )
         Statistics(
             correctAnswers = uiState.correctAnswers,
             wrongAnswers = uiState.currentQuestionCount - uiState.correctAnswers
@@ -106,23 +111,30 @@ fun ResultsScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-        Row(
-            modifier = Modifier,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.Bottom
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            if (questionViewModel.gameMode.value == GameMode.SOLO) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (questionViewModel.gameMode.value == GameMode.SOLO) {
+                    ResultsButton(
+                        modifier = Modifier.weight(1f),
+                        text = R.string.replay,
+                        onClick = onReplayClick
+                    )
+                }
                 ResultsButton(
                     modifier = Modifier.weight(1f),
-                    text = R.string.replay,
-                    onClick = onReplayClick
+                    text = R.string.home,
+                    onClick = onHomeClick
                 )
             }
-            ResultsButton(
-                modifier = Modifier.weight(1f),
-                text = R.string.home,
-                onClick = onHomeClick
-            )
         }
     }
 }
@@ -138,8 +150,7 @@ fun PlayerListScore(
         modifier = modifier
     ) {
         LazyColumn(
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(16.dp),
         ) {
             itemsIndexed(playerList) { index, player ->
                 StatisticsItem(
@@ -164,8 +175,7 @@ fun Score(
 ) {
     Card {
         Column(
-            modifier = modifier
-                .padding(16.dp),
+            modifier = modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -197,7 +207,13 @@ fun ResultsButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = LavenderPurple,
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = ButtonDefaults.buttonElevation(6.dp)
     ) {
         Text(
             text = stringResource(text).uppercase(),
@@ -264,6 +280,11 @@ fun StatisticsItem(
 @Composable
 fun ResultsScreenPreview() {
     SensorQuizTheme {
-        ResultsScreen(modifier = Modifier.fillMaxSize(), onReplayClick = {}, onHomeClick = {}, navController = rememberNavController())
+        ResultsScreen(
+            modifier = Modifier.fillMaxSize(),
+            onReplayClick = {},
+            onHomeClick = {},
+            navController = rememberNavController()
+        )
     }
 }
