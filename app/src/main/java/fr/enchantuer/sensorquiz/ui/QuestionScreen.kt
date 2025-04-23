@@ -1,18 +1,14 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -31,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,7 +37,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.Answers
 import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
@@ -51,41 +47,48 @@ import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun QuestionScreen(
-    selectedCategory: String,
     onGameOver: () -> Unit,
     modifier: Modifier = Modifier,
     questionViewModel: QuestionViewModel = viewModel(),
 ) {
     val uiState by questionViewModel.uiState.collectAsState()
 
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("my_app_preferences", Context.MODE_PRIVATE)
+    val useSensor = sharedPreferences.getBoolean("use_sensor", true)
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    Log.d("SensorTest", "Sensor Registered")
-                    questionViewModel.startSensor(uiState.questionType)
+    if (useSensor) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> {
+                        Log.d("SensorTest", "Sensor Registered")
+                        questionViewModel.startSensor(uiState.questionType)
+                    }
+                    Lifecycle.Event.ON_PAUSE -> {
+                        Log.d("SensorTest", "Sensor Unregistered")
+                        questionViewModel.stopSensor()
+                    }
+                    else -> {}
                 }
-                Lifecycle.Event.ON_PAUSE -> {
-                    Log.d("SensorTest", "Sensor Unregistered")
-                    questionViewModel.stopSensor()
-                }
-                else -> {}
             }
-        }
 
-        lifecycleOwner.lifecycle.addObserver(observer)
+            lifecycleOwner.lifecycle.addObserver(observer)
 
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-            questionViewModel.stopSensor()
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+                questionViewModel.stopSensor()
+            }
         }
     }
 
-    LaunchedEffect(uiState.answerState) {
-        if (uiState.answerState == AnswerState.NONE) {
-            questionViewModel.startSensor(uiState.questionType)
+    if (useSensor) {
+        LaunchedEffect(uiState.answerState) {
+            if (uiState.answerState == AnswerState.NONE) {
+                questionViewModel.startSensor(uiState.questionType)
+            }
         }
     }
 
@@ -94,12 +97,6 @@ fun QuestionScreen(
             onGameOver()
         }
     }
-
-    LaunchedEffect(Unit) {
-        questionViewModel.selectedCategory = selectedCategory
-        questionViewModel.restart()
-    }
-
 
     Box(
         modifier = modifier
@@ -357,7 +354,6 @@ fun ProgressHeader(current: Int, total: Int) {
 fun QuestionScreenPreview() {
     SensorQuizTheme {
         QuestionScreen(
-            selectedCategory = "Education",
             onGameOver = {}
         )
     }

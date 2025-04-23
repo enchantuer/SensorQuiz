@@ -1,5 +1,6 @@
 package fr.enchantuer.sensorquiz.ui
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,10 +44,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 
-
-import androidx.compose.runtime.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.height
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun MultiplayerMenuScreen(
@@ -64,6 +64,10 @@ fun MultiplayerMenuScreen(
                 Log.e("FirebaseAuth", "Sign in failed", task.exception)
             }
         }
+
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("my_app_preferences", Context.MODE_PRIVATE)
+    val pseudo = sharedPreferences.getString("user_pseudo", "Joueur") ?: "Joueur"
 
     var codeInput by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -125,7 +129,7 @@ fun MultiplayerMenuScreen(
                     Button(
                         onClick = { joinLobby(
                             userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                            name = "test2",
+                            name = pseudo,
                             code = codeInput,
                             onJoined = onJoinClick
                         ) },
@@ -149,7 +153,7 @@ fun MultiplayerMenuScreen(
                     Button(
                         onClick = { createLobby(
                             userId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                            name = "test",
+                            name = pseudo,
                             onCreated = onHostClick
                         ) },
                         modifier = Modifier.fillMaxWidth(),
@@ -182,6 +186,7 @@ fun createLobby(userId: String, name: String, onCreated: (String) -> Unit) {
         "hostId" to userId,
         "status" to "waiting",
         "players" to mapOf(userId to mapOf("name" to name, "score" to 0)),
+        "category" to "Education",
         "questions" to listOf<Question>(),
     )
     Log.d("createLobby", "lobbyData: $lobbyData")
@@ -190,7 +195,7 @@ fun createLobby(userId: String, name: String, onCreated: (String) -> Unit) {
             Log.d("createLobby", "Lobby created successfully")
             onCreated(lobbyCode)
         }
-    Log.d("createLobby", "Lobby creation failed")
+//    Log.d("createLobby", "Lobby creation failed")
 }
 
 fun joinLobby(userId: String, name: String, code: String, onJoined: (String) -> Unit) {

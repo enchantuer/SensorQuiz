@@ -34,4 +34,5 @@
     <string name="input_code">CODE</string>
     <string name="join">Rejoindre</string>
     <string name="multiplayer_menu">Multijoueur</string>
+    <string name="use_sensor">Utiliser les capteurs pour répondre</string>
 </resources>

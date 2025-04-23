@@ -48,7 +48,6 @@ fun ResultsScreen(
     modifier: Modifier = Modifier,
     questionViewModel: QuestionViewModel = viewModel()
 ) {
-    var listenerDB: ListenerRegistration? = null
     val playerList = remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
     // Restart the game when the user leave the result screen
     DisposableEffect(navController) {
@@ -75,17 +74,20 @@ fun ResultsScreen(
             modifier = Modifier.fillMaxWidth())
         Statistics(
             correctAnswers = uiState.correctAnswers,
-            wrongAnswers = uiState.currentQuestionCount - uiState.correctAnswers,        )
+            wrongAnswers = uiState.currentQuestionCount - uiState.correctAnswers
+        )
+        Log.d("ResultScreen", "GameMode: ${questionViewModel.gameMode.value}")
         if (questionViewModel.gameMode.value == GameMode.MULTI) {
             val firestore = Firebase.firestore
             val lobbyCode = questionViewModel.lobbyCode.value
             val lobbyRef = firestore.collection("lobbies").document(lobbyCode)
 
             LaunchedEffect(true) {
-                Log.d("LobbyScreen", "Launch effect lobbyCode: $lobbyCode")
-                listenerDB = lobbyRef.addSnapshotListener { snapshot, _ ->
+                Log.d("ResultScreen", "Launch effect lobbyCode: $lobbyCode")
+                lobbyRef.addSnapshotListener { snapshot, _ ->
                     // Get a list of <playerName, score>
                     if (snapshot != null && snapshot.exists()) {
+                        Log.d("ResultScreen", "snapshot: $snapshot")
                         val playersMap = snapshot.get("players") as? Map<*, *>
                         val playerScores = playersMap?.mapNotNull { entry ->
                             val playerData = entry.value as? Map<*, *>
@@ -93,7 +95,7 @@ fun ResultsScreen(
                             val score = (playerData?.get("score") as? Long)?.toInt() // Firestore stocke les nombres en Long
                             if (name != null && score != null) name to score else null
                         } ?: emptyList()
-
+                        Log.d("ResultScreen", "playerScores: $playerScores")
                         playerList.value = playerScores.sortedByDescending { it.second }
                     }
                 }

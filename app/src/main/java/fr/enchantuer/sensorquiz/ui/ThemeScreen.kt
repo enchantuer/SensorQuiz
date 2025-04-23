@@ -1,7 +1,6 @@
 package fr.enchantuer.sensorquiz.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,10 +17,14 @@ import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 
 @Composable
 fun ThemeScreen(
-    selectedCategory: String? = null,
-    onNextButtonClick: (String?) -> Unit,
+    onNextButtonClick: () -> Unit,
+    questionViewModel: QuestionViewModel,
     modifier: Modifier = Modifier
 ) {
+    fun next(category: String) {
+        questionViewModel.setCategory(category)
+        onNextButtonClick()
+    }
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -55,11 +58,11 @@ fun ThemeScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    ThemeButton("🎓 Éducation") { onNextButtonClick("Education") }
-                    ThemeButton("🌍 Monde et culture") { onNextButtonClick("WorldCulture") }
-                    ThemeButton("🎭 Divertissement") { onNextButtonClick("Entertainment") }
-                    ThemeButton("🧠 Logique & mémoire") { onNextButtonClick("LogicMemory") }
-                    ThemeButton("📱 Tech & numérique") { onNextButtonClick("Tech") }
+                    ThemeButton("🎓 Éducation") { next("Education") }
+                    ThemeButton("🌍 Monde et culture") { next("WorldCulture") }
+                    ThemeButton("🎭 Divertissement") { next("Entertainment") }
+                    ThemeButton("🧠 Logique & mémoire") { next("LogicMemory") }
+                    ThemeButton("📱 Tech & numérique") { next("Tech") }
                 }
             }
         }

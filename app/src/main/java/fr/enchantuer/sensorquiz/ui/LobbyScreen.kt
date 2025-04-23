@@ -49,9 +49,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import fr.enchantuer.sensorquiz.R
 import fr.enchantuer.sensorquiz.ui.theme.LavenderPurple
-import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
 import fr.enchantuer.sensorquiz.data.Question
-import fr.enchantuer.sensorquiz.data.questionList
 import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 import fr.enchantuer.sensorquiz.ui.theme.violetGradientBackground
 import kotlinx.coroutines.launch
@@ -79,11 +77,13 @@ fun LobbyScreen(
 
     val players = remember { mutableStateListOf<String>() }
     var status by remember { mutableStateOf("waiting") }
+    var category by remember { mutableStateOf("") }
 
     // Listener Firestore
     Log.d("LobbyScreen", "lobbyCode: $lobbyCode")
     LaunchedEffect(true) {
         Log.d("LobbyScreen", "Launch effect lobbyCode: $lobbyCode")
+        questionViewModel.setLobbyCode(lobbyCode)
         listener = lobbyRef.addSnapshotListener { snapshot, _ ->
             Log.d("LobbyScreen", "listener lobbyCode: $lobbyCode")
             if (snapshot != null && snapshot.exists()) {
@@ -91,7 +91,7 @@ fun LobbyScreen(
                 val playerMap = snapshot.get("players") as? Map<*, *>
                 players.clear()
                 players.addAll(playerMap?.values?.mapNotNull { (it as? Map<*, *>)?.get("name") as? String } ?: emptyList())
-
+                category = snapshot.getString("category") ?: ""
                 if (status == "started") {
                     Log.d("LobbyScreen", "Game started")
                     questionViewModel.restart()
@@ -120,14 +120,10 @@ fun LobbyScreen(
     }
 
     fun startGame() {
-        fun generateQuestions(): List<Question> {
-            return questionList.shuffled().take(MAX_NUMBER_OF_QUESTIONS)
-        }
-
         if (isHost) {
             val updatedLobbyData = mapOf(
                 "status" to "started", // Statut mis à jour
-                "questions" to generateQuestions(), // Liste des questions envoyée
+                "questions" to questionViewModel.generateQuestions(), // Liste des questions envoyée
                 "currentQuestionIndex" to 0 // Réinitialisation de l'index des questions
             )
 
@@ -246,7 +242,10 @@ fun LobbyScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Settings(onThemeClick = onThemeClick)
+                Settings(
+                    onThemeClick = onThemeClick,
+                    category = category
+                )
                 PlayerList(playerList = players)
                 if (isHost) {
                     Row(
@@ -277,7 +276,7 @@ fun LobbyScreen(
         onDispose {
             listener?.remove()
             // Appelle la fonction pour supprimer le joueur lorsqu'il quitte ou l'app
-            if (status == "waiting") {
+            if (status == "waiting" && !isHost) {
                 removePlayerFromLobby(playerId) // Remplace par la variable du joueur qui quitte
             }
         }
@@ -323,6 +322,7 @@ fun PlayerList(
 @Composable
 fun Settings(
     onThemeClick: () -> Unit,
+    category: String,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -352,7 +352,7 @@ fun Settings(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "Catégorie 1",
+                    text = category,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }

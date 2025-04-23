@@ -14,7 +14,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -22,7 +21,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import fr.enchantuer.sensorquiz.ui.LobbyScreen
-import fr.enchantuer.sensorquiz.ui.LocalisationScreen
 import fr.enchantuer.sensorquiz.ui.MenuScreen
 import fr.enchantuer.sensorquiz.ui.MultiplayerMenuScreen
 import fr.enchantuer.sensorquiz.ui.QuestionScreen
@@ -37,9 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.navigation.compose.*
-import fr.enchantuer.sensorquiz.ui.*
-import fr.enchantuer.sensorquiz.ui.theme.SensorQuizTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -135,8 +130,6 @@ fun SensorQuizApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-
     Scaffold(
         topBar = {
             SensorQuizTopAppBar(
@@ -171,14 +164,20 @@ fun SensorQuizApp(
                 SettingsScreen()
             }
 
-            composable(route = SensorQuizScreen.Theme.name) {
+            composable(
+                route = SensorQuizScreen.Theme.name,
+            ) {
+                val isLobby = questionViewModel.lobbyCode.value.isNotEmpty()
                 ThemeScreen(
                     modifier = Modifier.fillMaxSize(),
-                    selectedCategory = selectedCategory,
+                    questionViewModel = questionViewModel,
                     onNextButtonClick = {
-                        questionViewModel.selectedCategory = selectedCategory
-                        questionViewModel.restart()
-                        navController.navigate(SensorQuizScreen.Question.name)
+                        if (isLobby) {
+                            navController.navigateUp() // Go back to Lobby
+                        } else {
+                            questionViewModel.restart()
+                            navController.navigate(SensorQuizScreen.Question.name) // Go to Question
+                        }
                     }
                 )
             }
@@ -186,7 +185,6 @@ fun SensorQuizApp(
             composable(route = SensorQuizScreen.Question.name) {
                 QuestionScreen(
                     modifier = Modifier.fillMaxSize(),
-                    selectedCategory = questionViewModel.selectedCategory ?: "Education",
                     onGameOver = {
                         navController.navigate(SensorQuizScreen.Results.name) {
                             popUpTo(SensorQuizScreen.Menu.name) {

@@ -16,8 +16,6 @@ import fr.enchantuer.sensorquiz.data.AnswerState
 import fr.enchantuer.sensorquiz.data.MAX_NUMBER_OF_QUESTIONS
 import fr.enchantuer.sensorquiz.data.Question
 import fr.enchantuer.sensorquiz.data.QuestionType
-import fr.enchantuer.sensorquiz.data.questionList
-import fr.enchantuer.sensorquiz.data.*
 import fr.enchantuer.sensorquiz.data.QuestionsCategories.educationQuestions
 import fr.enchantuer.sensorquiz.data.QuestionsCategories.worldCultureQuestions
 import fr.enchantuer.sensorquiz.data.QuestionsCategories.entertainmentQuestions
@@ -47,6 +45,8 @@ class QuestionViewModel : ViewModel() {
     private var hostQuestions: List<Question> = emptyList()
     private var currentQuestionIndex = 0
 
+    private var _selectedCategory = mutableStateOf("Education")
+//    val selectedCategory: State<String> = _selectedCategory
 
     var userAnswer by mutableStateOf("")
         private set
@@ -55,6 +55,27 @@ class QuestionViewModel : ViewModel() {
 
     fun setLobbyCode(lobbyCode: String) {
         _lobbyCode.value = lobbyCode
+    }
+
+    fun setCategory(category: String) {
+        _selectedCategory.value = category
+        if (_lobbyCode.value.isNotEmpty()) {
+            val firestore = Firebase.firestore
+            val lobbyRef = firestore.collection("lobbies").document(_lobbyCode.value)
+
+            val updatedLobbyData = mapOf(
+                "category" to category,
+            )
+
+            // Ici tu enverras ces données à Firebase en utilisant le lobbyCode
+            lobbyRef.update(updatedLobbyData)
+                .addOnSuccessListener {
+                    Log.d("Theme", "Categorie mis à jour")
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("Theme", "Erreur lors de la mise à jour de la categorie: ${exception.message}")
+                }
+        }
     }
 
     fun setSensorController(controller: SensorTiltDetection) {
@@ -76,25 +97,22 @@ class QuestionViewModel : ViewModel() {
         nextQuestion()
     }
 
-    var selectedCategory: String? = null
-
-    private var dynamicQuestionList: List<Question> = questionList
-
     private fun pickRandomQuestion() {
         // Continue picking up a new random question until you get one that hasn't been used before
-        val newQuestion = questionList.random()
+        val newQuestion = (when (_selectedCategory.value) {
+            "Education" -> educationQuestions
+            "WorldCulture" -> worldCultureQuestions
+            "Entertainment" -> entertainmentQuestions
+            "LogicMemory" -> logicMemoryQuestions
+            "Tech" -> techQuestions
+            else -> educationQuestions
+        }).random()
         if (usedQuestions.contains(newQuestion.id)) {
             return pickRandomQuestion()
         } else {
             usedQuestions.add(newQuestion.id)
             _currentQuestion.value = newQuestion
         }
-//        val available = dynamicQuestionList.filterNot { usedQuestions.contains(it.id) }
-//        if (available.isEmpty()) return
-//
-//        val newQuestion = available.random()
-//        usedQuestions.add(newQuestion.id)
-//        _currentQuestion.value = newQuestion
     }
 
     fun updateUserAnswer(answer: String) {
@@ -149,7 +167,7 @@ class QuestionViewModel : ViewModel() {
 
     private fun nextQuestion() {
         if (_gameMode.value == GameMode.MULTI) {
-            if (currentQuestionIndex < hostQuestions.size) {
+                if (currentQuestionIndex < hostQuestions.size) {
                 _currentQuestion.value = hostQuestions[currentQuestionIndex]
                 currentQuestionIndex++
                 _uiState.update { currentState ->
@@ -170,7 +188,7 @@ class QuestionViewModel : ViewModel() {
                 }
             }
         } else {
-            if (usedQuestions.size == MAX_NUMBER_OF_QUESTIONS || usedQuestions.size == questionList.size) {
+            if (usedQuestions.size == MAX_NUMBER_OF_QUESTIONS) {
                 _uiState.update { currentState ->
                     currentState.copy(
                         answerState = AnswerState.NONE,
@@ -192,32 +210,10 @@ class QuestionViewModel : ViewModel() {
             }
             updateUserAnswer("")
         }
-
-//        if (usedQuestions.size == dynamicQuestionList.size) {
-//            _uiState.update { currentState ->
-//                currentState.copy(
-//                    answerState = AnswerState.NONE,
-//                    isGameOver = true
-//                )
-//            }
-//        } else {
-//            pickRandomQuestion()
-//            _uiState.update { currentState ->
-//                currentState.copy(
-//                    answerState = AnswerState.NONE,
-//                    currentQuestionCount = currentState.currentQuestionCount.inc(),
-//                    currentQuestion = _currentQuestion.value?.question ?: "",
-//                    questionType = _currentQuestion.value?.type ?: QuestionType.TWO_CHOICES,
-//                    answers = _currentQuestion.value?.answers
-//                )
-//            }
-//        }
-//        updateUserAnswer("")
     }
 
     fun restart() {
         usedQuestions.clear()
-        loadQuestionsForCategory()
         pickRandomQuestion()
         _gameMode.value = GameMode.SOLO
         _lobbyCode.value = ""
@@ -230,15 +226,15 @@ class QuestionViewModel : ViewModel() {
         )
     }
 
-    fun loadQuestionsForCategory() {
-        dynamicQuestionList = when (selectedCategory) {
+    fun generateQuestions(): List<Question> {
+        return (when (_selectedCategory.value) {
             "Education" -> educationQuestions
             "WorldCulture" -> worldCultureQuestions
             "Entertainment" -> entertainmentQuestions
             "LogicMemory" -> logicMemoryQuestions
             "Tech" -> techQuestions
-            else -> questionList
-        }
+            else -> educationQuestions
+        }).shuffled().take(MAX_NUMBER_OF_QUESTIONS)
     }
 
     init {
