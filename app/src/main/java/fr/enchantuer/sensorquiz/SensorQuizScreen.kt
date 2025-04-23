@@ -168,6 +168,9 @@ fun SensorQuizApp(
                 route = SensorQuizScreen.Theme.name,
             ) {
                 val isLobby = questionViewModel.lobbyCode.value.isNotEmpty()
+                if (isLobby) {
+                    navController.previousBackStackEntry?.savedStateHandle?.set("isInLobby", true)
+                }
                 ThemeScreen(
                     modifier = Modifier.fillMaxSize(),
                     questionViewModel = questionViewModel,
@@ -262,6 +265,7 @@ fun SensorQuizApp(
                     lobbyCode = lobbyCode,
                     questionViewModel = questionViewModel,
                     isHost = isHost,
+                    navBackStackEntry = it
                 )
             }
         }

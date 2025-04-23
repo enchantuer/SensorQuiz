@@ -42,6 +42,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
@@ -65,7 +66,8 @@ fun LobbyScreen(
     isHost: Boolean,
     onStartGame: () -> Unit,
     questionViewModel: QuestionViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navBackStackEntry: NavBackStackEntry
 ) {
     Log.d("LobbyScreen", "First lobbyCode: $lobbyCode")
     val playerId = Firebase.auth.currentUser?.uid ?: ""
@@ -78,6 +80,15 @@ fun LobbyScreen(
     val players = remember { mutableStateListOf<String>() }
     var status by remember { mutableStateOf("waiting") }
     var category by remember { mutableStateOf("") }
+
+    val savedStateHandle = navBackStackEntry.savedStateHandle
+    var isInLobby by remember {
+        mutableStateOf(savedStateHandle.get<Boolean>("isInLobby") ?: false)
+    }
+
+    LaunchedEffect(key1 = true) {
+        savedStateHandle.remove<Boolean>("isInLobby")
+    }
 
     // Listener Firestore
     Log.d("LobbyScreen", "lobbyCode: $lobbyCode")
@@ -243,7 +254,12 @@ fun LobbyScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Settings(
-                    onThemeClick = onThemeClick,
+                    onThemeClick = {
+                        if (isHost) {
+                            isInLobby = false
+                            onThemeClick()
+                        }
+                    },
                     category = category
                 )
                 PlayerList(playerList = players)
@@ -272,11 +288,12 @@ fun LobbyScreen(
         SnackbarHost(hostState = snackbarHostState)
     }
 
-    DisposableEffect(key1 = lobbyCode) {
+    DisposableEffect(key1 = lobbyCode, key2 = isInLobby) {
         onDispose {
             listener?.remove()
             // Appelle la fonction pour supprimer le joueur lorsqu'il quitte ou l'app
-            if (status == "waiting" && !isHost) {
+            if (status == "waiting" && isInLobby) {
+                questionViewModel.setLobbyCode("")
                 removePlayerFromLobby(playerId) // Remplace par la variable du joueur qui quitte
             }
         }

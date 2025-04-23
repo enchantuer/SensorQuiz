@@ -199,6 +199,7 @@ fun createLobby(userId: String, name: String, onCreated: (String) -> Unit) {
 }
 
 fun joinLobby(userId: String, name: String, code: String, onJoined: (String) -> Unit) {
+    if (code.isEmpty()) return
     val lobbyRef = Firebase.firestore.collection("lobbies").document(code)
     lobbyRef.get().addOnSuccessListener { document ->
         if (document.exists() && document.getString("status") == "waiting") {
