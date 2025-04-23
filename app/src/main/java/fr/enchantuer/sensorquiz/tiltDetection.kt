@@ -13,18 +13,16 @@ class SensorTiltDetection(
     private val sensorManager: SensorManager,
     private val onTiltDetected: (tiltValue: TiltValue) -> Unit
 ) : SensorEventListener {
-
     private val linearAcceleration: Sensor? =
         sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
-
 
     private var isCheckingTilt = false
     private var tiltBuffer = mutableListOf<TiltValue>()
     private val handler = Handler(Looper.getMainLooper())
 
-    private val checkDuration = 200L // ms
+    private val checkDuration = 50L // ms
 
-    private val debounceTime = 10000L
+    private val debounceTime = 800L
     private var lastDetectionTime = 0L
     private var hasResponded = false
 
@@ -32,7 +30,7 @@ class SensorTiltDetection(
 
     fun startListening() {
         isCheckingTilt = false
-        lastDetectionTime = 0L
+        lastDetectionTime = System.currentTimeMillis()
         hasResponded = false
         tiltBuffer.clear()
 
@@ -80,8 +78,8 @@ class SensorTiltDetection(
         // On garde seulement les mouvements significatifs
         val filtered = tiltBuffer.filter { it != TiltValue.NONE }
         val detected = filtered.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
-
-        if (detected != null) {
+        Log.d("SensorTest", "hasResponded: $hasResponded | lastDetectionTime: $lastDetectionTime | debounceTime: ${System.currentTimeMillis() - lastDetectionTime}")
+        if (detected != null/* && hasResponded.not() && (System.currentTimeMillis() - lastDetectionTime > debounceTime)*/) {
             hasResponded = true
             lastDetectionTime = System.currentTimeMillis()
             Log.d("SensorTest", "Tilt confirmed: $detected")
