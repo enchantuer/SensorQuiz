@@ -20,9 +20,9 @@ class SensorTiltDetection(
     private var tiltBuffer = mutableListOf<TiltValue>()
     private val handler = Handler(Looper.getMainLooper())
 
-    private val checkDuration = 50L // ms
+    private val checkDuration = 200L // ms
 
-    private val debounceTime = 800L
+    private val debounceTime = 300L
     private var lastDetectionTime = 0L
     private var hasResponded = false
 
@@ -52,12 +52,24 @@ class SensorTiltDetection(
         val x = event.values[0]  // gauche/droite
         val z = event.values[2]  // vers/loin
 
-        val currentTilt = when {
-            x > 5 -> TiltValue.LEFT
-            x < -5 -> TiltValue.RIGHT
-            z > 7 -> TiltValue.SHAKE // vers l'utilisateur
+        var currentTilt = when {
+            x > 3 -> TiltValue.LEFT
+            x < -3 -> TiltValue.RIGHT
+            z > 6 -> TiltValue.SHAKE // vers l'utilisateur
             else -> TiltValue.NONE
         }
+        if (questionType != QuestionType.THREE_CHOICES && currentTilt == TiltValue.SHAKE) {
+            currentTilt = TiltValue.NONE
+        }
+
+//        if (currentTilt != TiltValue.NONE) {
+//            Log.d("SensorTest", "currentTilt: $currentTilt")
+//            hasResponded = true
+//            lastDetectionTime = System.currentTimeMillis()
+//            onTiltDetected(currentTilt)
+//
+//            stopListening()
+//        }
 
         if (!isCheckingTilt && currentTilt != TiltValue.NONE) {
             isCheckingTilt = true
