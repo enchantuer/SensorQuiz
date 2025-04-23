@@ -1,7 +1,5 @@
 package fr.enchantuer.sensorquiz.ui
 
-import android.util.Log
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
