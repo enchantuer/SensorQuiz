@@ -56,6 +56,7 @@ class SensorTiltDetection(
             x > 3 -> TiltValue.LEFT
             x < -3 -> TiltValue.RIGHT
             z > 6 -> TiltValue.SHAKE // vers l'utilisateur
+            z < -6 -> TiltValue.SHAKE
             else -> TiltValue.NONE
         }
         if (questionType != QuestionType.THREE_CHOICES && currentTilt == TiltValue.SHAKE) {
