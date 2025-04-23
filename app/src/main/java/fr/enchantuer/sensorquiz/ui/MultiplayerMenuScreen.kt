@@ -119,7 +119,7 @@ fun MultiplayerMenuScreen(
                     // Champ de texte
                     OutlinedTextField(
                         value = codeInput,
-                        onValueChange = { codeInput = it },
+                        onValueChange = { codeInput = it.uppercase() },
                         label = { Text("Code d'invitation") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
